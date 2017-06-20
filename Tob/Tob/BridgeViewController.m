@@ -141,6 +141,7 @@
         [self presentViewController:alert animated:YES completion:NULL];
     }
 }
+
 #pragma mark - QRCodeReader Delegate Methods
 
 - (void)reader:(QRCodeReaderViewController *)reader didScanResult:(NSString *)result {
