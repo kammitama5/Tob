@@ -51,10 +51,22 @@
                       @"err file /dev/null",
 #endif
 #ifdef DEBUG
-                      @"notice stderr",
+                      @"notice stdout",
 #endif
                       @"-f", base_torrc,
                       nil];
+    
+    /*
+    conf.arguments = [NSArray arrayWithObjects:
+                      @"--ignore-missing-torrc",
+                      @"--clientonly", "1",
+                      @"--socksport", "39050",
+                      @"--controlport", "127.0.0.1:39060",
+                      @"--log", "notice stdout",
+                      @"--clientuseipv4", "1",
+                      @"--clientuseipv6", "1",
+                      nil];
+    */
     
     tor = [[TORThread alloc] initWithConfiguration:conf];
     [tor start];

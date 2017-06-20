@@ -99,6 +99,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     UIView *_torLoadingView;
     UIView *_torDarkBackgroundView;
     UILabel *_torProgressDescription;
+    UILabel *_torLoadTimeWarning;
     
     // Tor panel view
     UIView *_torPanelView;
@@ -116,6 +117,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         self.restorationIdentifier = @"tabsViewController";
         self.restorationClass = [self class];
         _newIdentityNumber = 0;
+        
         [self initUI];
     }
     return self;
@@ -221,7 +223,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     _torDarkBackgroundView.alpha = 0.5;
     [self.view addSubview:_torDarkBackgroundView];
     
-    _torLoadingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 300, 100)];
+    _torLoadingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 300, 140)];
     _torLoadingView.center = self.view.center;
     _torLoadingView.layer.cornerRadius = 5.0f;
     _torLoadingView.layer.masksToBounds = YES;
@@ -251,7 +253,14 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     _torProgressDescription.text = @"0% - Starting";
     [_torLoadingView addSubview:_torProgressDescription];
     
-    [appDelegate.logViewController logInfo:@"[tor] 0% - Starting"];
+    _torLoadTimeWarning = [[UILabel alloc] initWithFrame:CGRectMake(10, 90, _torLoadingView.frame.size.width - 20, 40)];
+    _torLoadTimeWarning.numberOfLines = 3;
+    _torLoadTimeWarning.textAlignment = NSTextAlignmentCenter;
+    _torLoadTimeWarning.text = NSLocalizedString(@"This may take up to a couple of minutes. If it remains stuck, check-out bridges or try restarting the app.", nil);
+    [_torLoadTimeWarning setFont:[UIFont systemFontOfSize:11]];
+    [_torLoadingView addSubview:_torLoadTimeWarning];
+
+    [appDelegate.logViewController logInfo:@"[Tor] 0% - Starting"];
     
     [self.view addSubview:_torLoadingView];
     
@@ -304,12 +313,13 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         _torLoadingView.backgroundColor = [UIColor groupTableViewBackgroundColor];
         
         for (UIView *subview in [_torLoadingView subviews]) {
-            if ([subview class] == [UILabel class])
+            if ([subview class] == [UILabel class] && subview != _torLoadTimeWarning)
                 [(UILabel *)subview setTextColor:[UIColor blackColor]];
             else if ([subview class] == [UIButton class])
                 [(UIButton *) subview setTintColor:self.view.tintColor];
         }
         
+        _torLoadTimeWarning.textColor = [UIColor grayColor];
         _torProgressDescription.textColor = [UIColor blackColor];
         
         _tabsBarButtonItem.tintColor = self.view.tintColor;
@@ -357,12 +367,13 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         _torLoadingView.backgroundColor = [UIColor darkGrayColor];
         
         for (UIView *subview in [_torLoadingView subviews]) {
-            if ([subview class] == [UILabel class])
+            if ([subview class] == [UILabel class] && subview != _torLoadTimeWarning)
                 [(UILabel *)subview setTextColor:[UIColor whiteColor]];
             else if ([subview class] == [UIButton class])
                 [(UIButton *) subview setTintColor:[UIColor whiteColor]];
         }
         
+        _torLoadTimeWarning.textColor = [UIColor lightGrayColor];
         _torProgressDescription.textColor = [UIColor whiteColor];
         
         _tabsBarButtonItem.tintColor = [UIColor whiteColor];
@@ -517,8 +528,6 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
             }
         }
         
-        [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"subtitles: %@", [[appDelegate startUrl] host]]];
-        
         if ([appDelegate startUrl]) {
             [_subtitles addObject:[[appDelegate startUrl] host]];
         }
@@ -536,15 +545,23 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         _titles = [[NSMutableArray alloc] init];
         
         AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+        
         if ([appDelegate restoredData]) {
+            NSMutableString *logString = [@"[Browser] Restoring tabs:" mutableCopy];
+            
             for (int i = 0; i < [appDelegate restoredData].count; i++) {
                 NSDictionary *params = [appDelegate restoredData][i];
                 [_titles addObject:[params objectForKey:@"url"]];
+                [logString appendString:[@"\n• " stringByAppendingString:[params objectForKey:@"url"]]];
+            }
+            
+            if (_titles.count > 0) {
+                [appDelegate.logViewController logInfo:logString];
             }
         }
         
-        [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"titles: %@", [[appDelegate startUrl] absoluteString]]];
         if ([appDelegate startUrl]) {
+            [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"[Browser] Started app with URL %@", [[appDelegate startUrl] absoluteString]]];
             [_titles addObject:[[appDelegate startUrl] absoluteString]];
         }
         
@@ -966,8 +983,10 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 }
 
 - (void)refreshCurrentTab {
-    if (_webViewObject)
+    if (_webViewObject) {
         [_webViewObject reload];
+        [[[self contentViews] objectAtIndex:self.tabView.currentIndex] setNeedsForceRefresh:NO];
+    }
 }
 
 - (void)setTabsNeedForceRefresh:(BOOL)needsForceRefresh {
@@ -1039,8 +1058,8 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     
     // Log the progress if it hasn't been logged yet
-    if ([appDelegate.logViewController.logTextView.text rangeOfString:[@"[tor] " stringByAppendingString:_torProgressDescription.text]].location == NSNotFound)
-        [appDelegate.logViewController logInfo:[@"[tor] " stringByAppendingString:_torProgressDescription.text]];
+    if ([appDelegate.logViewController.logTextView.text rangeOfString:[@"[Tor] " stringByAppendingString:_torProgressDescription.text]].location == NSNotFound)
+        [appDelegate.logViewController logInfo:[@"[Tor] " stringByAppendingString:_torProgressDescription.text]];
     
     if ([progress_str isEqualToString:@"100"]) {
         [self performSelectorOnMainThread:@selector(removeTorProgressView) withObject:nil waitUntilDone:NO];
@@ -1254,6 +1273,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     
     MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:appDelegate.window animated:YES];
     hud.mode = MBProgressHUDModeIndeterminate;
+    [hud.label setNumberOfLines:2];
     hud.label.text = NSLocalizedString(@"Clearing cache…", nil);
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{

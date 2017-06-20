@@ -114,7 +114,7 @@ connLastAutoIPStack = _connLastAutoIPStack
 
 - (void)requestTorInfo {
 #ifdef DEBUG
-    NSLog(@"[tor] Requesting Tor info (getinfo orconn-status)" );
+    NSLog(@"[Tor] Requesting Tor info (getinfo orconn-status)" );
 #endif
     // getinfo orconn-status: not the user's IP
     // getinfo circuit-status: not the user's IP
@@ -124,12 +124,12 @@ connLastAutoIPStack = _connLastAutoIPStack
 
 - (void)requestNewTorIdentity {
 #ifdef DEBUG
-    NSLog(@"[tor] Requesting new identity (SIGNAL NEWNYM)" );
+    NSLog(@"[Tor] Requesting new identity (SIGNAL NEWNYM)" );
 #endif
     [_mSocket writeString:@"SIGNAL NEWNYM\n" encoding:NSUTF8StringEncoding];
     
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    [appDelegate.logViewController logInfo:@"[tor] Requesting new identity"];
+    [appDelegate.logViewController logInfo:@"[Tor] Requesting new identity"];
 }
 
 
@@ -141,11 +141,11 @@ connLastAutoIPStack = _connLastAutoIPStack
     
     if (reach.currentReachabilityStatus != NotReachable) {
 #ifdef DEBUG
-        NSLog(@"[tor] Reachability changed (now online), sending HUP" );
+        NSLog(@"[Tor] Reachability changed (now online), sending HUP" );
 #endif
         
         AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-        [appDelegate.logViewController logInfo:@"[tor] Reachability changed (now online)"];
+        [appDelegate.logViewController logInfo:@"[Tor] Reachability changed (now online)"];
         
         // TODO: we only do this to catch a changed IPv4/IPv6 stack state.
         //       we can probably handle this more elegantly than rewriting torrc.
@@ -182,10 +182,10 @@ connLastAutoIPStack = _connLastAutoIPStack
         [_mSocket writeString:@"SIGNAL HUP\n" encoding:NSUTF8StringEncoding];
     }
 #ifdef DEBUG
-    NSLog(@"[tor] Came back from background, trying to talk to Tor again" );
+    NSLog(@"[Tor] Came back from background, trying to talk to Tor again" );
 #endif
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    [appDelegate.logViewController logInfo:@"[tor] Came back from background, trying to talk to Tor again"];
+    [appDelegate.logViewController logInfo:@"[Tor] Came back from background, trying to talk to Tor again"];
 
     _torCheckLoopTimer = [NSTimer scheduledTimerWithTimeInterval:0.25f
                                                           target:self
@@ -199,7 +199,7 @@ connLastAutoIPStack = _connLastAutoIPStack
 
 - (void)activateTorCheckLoop {
 #ifdef DEBUG
-    NSLog(@"[tor] Checking Tor Control Port" );
+    NSLog(@"[Tor] Checking Tor Control Port" );
 #endif
     
     _controllerIsAuthenticated = NO;
@@ -251,9 +251,9 @@ connLastAutoIPStack = _connLastAutoIPStack
     // near instantaneous.)
     //
     // Fail: Restart Tor? (Maybe HUP?)
-    NSLog(@"[tor] checkTor timed out, attempting to restart tor");
+    NSLog(@"[Tor] checkTor timed out, attempting to restart tor");
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    [appDelegate.logViewController logInfo:@"[tor] checkTor timed out, attempting to restart tor"];
+    [appDelegate.logViewController logInfo:@"[Tor] checkTor timed out, attempting to restart tor"];
     //[self startTor];
     [self hupTor];
 }
@@ -263,20 +263,21 @@ connLastAutoIPStack = _connLastAutoIPStack
     [[appDelegate tabsViewController] stopLoading];
     [[appDelegate tabsViewController] setTabsNeedForceRefresh:YES];
     [_mSocket writeString:@"setconf disablenetwork=1\n" encoding:NSUTF8StringEncoding];
-    [appDelegate.logViewController logInfo:@"[tor] DisableNetwork is set. Tor will not make or accept non-control network connections. Shutting down all existing connections."];
+    [appDelegate.logViewController logInfo:@"[Tor] DisableNetwork is set: Tor will not make or accept non-control network connections, shutting down all existing connections"];
 }
 
 - (void) enableNetwork {
     [_mSocket writeString:@"setconf disablenetwork=0\n" encoding:NSUTF8StringEncoding];
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     [[appDelegate tabsViewController] refreshCurrentTab];
-    [appDelegate.logViewController logInfo:@"[tor] Received reload signal (hup). Reloading config and resetting internal state."];
+    [appDelegate.logViewController logInfo:@"[Tor] DisableNetwork is unset: Tor now accepts network connections"];
+    [appDelegate.logViewController logInfo:@"[Tor] Received reload signal (hup): reloading config and resetting internal state"];
 }
 
 - (void)netsocketConnected:(ULINetSocket*)inNetSocket {
     /* Authenticate on first control port connect */
 #ifdef DEBUG
-    NSLog(@"[tor] Control Port Connected" );
+    NSLog(@"[Tor] Control Port Connected" );
 #endif
     //NSData *torCookie = [_torThread readTorCookie];
     //NSString *authMsg = [NSString stringWithFormat:@"authenticate %@\n",
@@ -289,7 +290,7 @@ connLastAutoIPStack = _connLastAutoIPStack
 
 - (void)netsocketDisconnected:(ULINetSocket*)inNetSocket {
 #ifdef DEBUG
-    NSLog(@"[tor] Control Port Disconnected" );
+    NSLog(@"[Tor] Control Port Disconnected" );
 #endif
     
     if (nbrFailedAttempts <= MAX_FAILED_ATTEMPTS) {
@@ -303,16 +304,17 @@ connLastAutoIPStack = _connLastAutoIPStack
 
 - (void)netsocket:(ULINetSocket*)inNetSocket dataAvailable:(unsigned)inAmount {
     NSString *msgIn = [_mSocket readString:NSUTF8StringEncoding];
+    NSLog(@"msgIn: %@", msgIn);
     
     if (!_controllerIsAuthenticated) {
         // Response to AUTHENTICATE
         if ([msgIn hasPrefix:@"250"]) {
 #ifdef DEBUG
-            NSLog(@"[tor] Control Port Authenticated Successfully" );
+            NSLog(@"[Tor] Control Port Authenticated Successfully");
 #endif
             
             AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-            [appDelegate.logViewController logInfo:@"[tor] Control Port Authenticated Successfully"];
+            [appDelegate.logViewController logInfo:@"[Tor] Control Port Authenticated Successfully"];
             _controllerIsAuthenticated = YES;
             
             [_mSocket writeString:@"getinfo status/bootstrap-phase\n" encoding:NSUTF8StringEncoding];
@@ -324,7 +326,7 @@ connLastAutoIPStack = _connLastAutoIPStack
         }
         else {
 #ifdef DEBUG
-            NSLog(@"[tor] Control Port: Got unknown post-authenticate message %@", msgIn);
+            NSLog(@"[Tor] Control Port: Got unknown post-authenticate message %@", msgIn);
 #endif
             // Could not authenticate with control port. This is the worst thing
             // that can happen on app init and should fail badly so that the
@@ -395,19 +397,19 @@ connLastAutoIPStack = _connLastAutoIPStack
         if ([msgIn rangeOfString:@"250 OK"].location == NSNotFound) {
             // Bad stuff! Should HUP since this means we can still talk to
             // Tor, but Tor is having issues with it's onion routing connections.
-            NSLog(@"[tor] Control Port: orconn-status: NOT OK\n    %@",
+            NSLog(@"[Tor] Control Port: orconn-status: NOT OK\n    %@",
                   [msgIn
                    stringByReplacingOccurrencesOfString:@"\n"
                    withString:@"\n    "]
                   );
             
             AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-            [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"[tor] Control Port: orconn-status: NOT OK\n    %@", [msgIn stringByReplacingOccurrencesOfString:@"\n" withString:@"\n    "]]];
+            [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"[Tor] Control Port: orconn-status: NOT OK\n    %@", [msgIn stringByReplacingOccurrencesOfString:@"\n" withString:@"\n    "]]];
 
             [self hupTor];
         } else {
 #ifdef DEBUG
-            NSLog(@"[tor] Control Port: orconn-status: OK");
+            NSLog(@"[Tor] Control Port: orconn-status: OK");
 #endif
             _torCheckLoopTimer = [NSTimer scheduledTimerWithTimeInterval:5.0f
                                                                   target:self
@@ -457,7 +459,10 @@ connLastAutoIPStack = _connLastAutoIPStack
                 
                 if (r1.location != NSNotFound && r2.location != NSNotFound && idRange.location != NSNotFound) {
                     NSString *exitID = [exit substringWithRange:idRange];
+                    
+#ifdef DEBUG
                     NSLog(@"exitID: %@", exitID);
+#endif
                     
                     // Get IP for the current exit
                     [_mSocket writeString:[NSString stringWithFormat:@"getinfo ns/id/%@\n", exitID] encoding:NSUTF8StringEncoding];
@@ -482,14 +487,19 @@ connLastAutoIPStack = _connLastAutoIPStack
                 NSArray* matches = [regex matchesInString:infoString
                                                   options:0
                                                     range:NSMakeRange(0, [infoString length])];
+                
+#ifdef DEBUG
                 for (NSTextCheckingResult *match in matches) {
                     NSLog(@"IP: %@", [infoString substringWithRange:[match rangeAtIndex:0]]);
                 }
+#endif
                 
             }
         }
     } else {
+#ifdef DEBUG
         NSLog(@"msgIn: %@", msgIn);
+#endif
     }
 }
 

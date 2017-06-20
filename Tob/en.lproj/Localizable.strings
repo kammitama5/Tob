@@ -135,6 +135,7 @@
 /* Tabs view controller */
 "Search or enter an address" = "Search or enter an address";
 "Initializing Tor…" = "Initializing Tor…";
+"This may take up to a couple of minutes. If it remains stuck, check-out bridges or try restarting the app." = "This may take up to a couple of minutes. If it remains stuck, check-out bridges or try restarting the app.";
 "New tab" = "New tab";
 "Tob cannot load a '%@' link, but another app you have installed can.\n\nNote that the other app will not load data over Tor, which could leak identifying information.\n\nDo you wish to proceed?" = "Tob cannot load a '%@' link, but another app you have installed can.\n\nNote that the other app will not load data over Tor, which could leak identifying information.\n\nDo you wish to proceed?";
 "Open Other App?" = "Open Other App?";

@@ -135,7 +135,7 @@ didLaunchObfsProxy
     return YES;
 }
 
--(void) startup2 {
+- (void)startup2 {
     /*
     if (![self torrcExists] && ![self isRunningTests]) {
         UIAlertController *alert2 = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Welcome to Tob", nil) message:NSLocalizedString(@"If you are in a location that blocks connections to Tor, you may configure bridges before trying to connect for the first time.", nil) preferredStyle:UIAlertControllerStyleAlert];
@@ -181,7 +181,7 @@ didLaunchObfsProxy
     }
 }
 
--(void) recheckObfsproxy {
+- (void)recheckObfsproxy {
     /* Launches obfs4proxy if it hasn't been launched yet
      * but we have some PT bridges that we didn't have before.
      * NOTE that this does not HUP tor. Caller should also perform
@@ -192,13 +192,15 @@ didLaunchObfsProxy
 #ifdef DEBUG
         NSLog(@"have obfs* or meek_lite or scramblesuit bridges, will launch obfs4proxy");
 #endif
+        
+        [self.logViewController logInfo:@"[Browser] Detected obfs*, meek_lite or scramblesuit bridges"];
         [_obfsproxy start];
         didLaunchObfsProxy = YES;
         [NSThread sleepForTimeInterval:0.1];
     }
 }
 
--(void) afterFirstRun {
+- (void)afterFirstRun {
     /* On very first run of app, we check with user if they want bridges
      * (so we don't dangerously launch un-bridged network connections).
      * After they are done configuring bridges, this happens.
@@ -210,6 +212,8 @@ didLaunchObfsProxy
 #ifdef DEBUG
         NSLog(@"have obfs* or meek_lite or scramblesuit bridges, will launch obfs4proxy");
 #endif
+        
+        [self.logViewController logInfo:@"[Browser] Detected obfs*, meek_lite or scramblesuit bridges"];
         [_obfsproxy start];
         didLaunchObfsProxy = YES;
         [NSThread sleepForTimeInterval:0.1];
@@ -541,7 +545,7 @@ void HandleSignal(int signal) {
             // TODO: eventually get rid of "UseMicrodescriptors 0" workaround
             //       (because it is very slow) pending this ticket:
             //       https://trac.torproject.org/projects/tor/ticket/20996
-            [myHandle writeData:[@"\nClientUseIPv4 0\nClientUseIPv6 1\nUseMicrodescriptors 0\n" dataUsingEncoding:NSUTF8StringEncoding]];
+            [myHandle writeData:[@"\nClientUseIPv4 0\nClientUseIPv6 1\n" dataUsingEncoding:NSUTF8StringEncoding]];
         } else if (ipv6_status == TOR_IPV6_CONN_DUAL) {
             [myHandle writeData:[@"\nClientUseIPv4 1\nClientUseIPv6 1\n" dataUsingEncoding:NSUTF8StringEncoding]];
         } else {
@@ -603,6 +607,10 @@ void HandleSignal(int signal) {
     
     NSURLCache *sharedCache = [[NSURLCache alloc] initWithMemoryCapacity:[[NSURLCache sharedURLCache] memoryCapacity] diskCapacity:[[NSURLCache sharedURLCache] diskCapacity] diskPath:nil];
     [NSURLCache setSharedURLCache:sharedCache];
+    
+    [self.tabsViewController setTabsNeedForceRefresh:YES];
+    [self.tabsViewController refreshCurrentTab];
+    [self.logViewController logInfo:@"[Browser] Cleared cookies and cache"];
 }
 
 - (void)wipeAppData {
@@ -802,10 +810,18 @@ void HandleSignal(int signal) {
 
 #ifdef DEBUG
 - (void)applicationProtectedDataWillBecomeUnavailable:(UIApplication *)application {
+#ifdef DEBUG
     NSLog(@"app data encrypted");
+#endif
+    
+    [self.logViewController logInfo:@"[Browser] App data encrypted"];
 }
 - (void)applicationProtectedDataDidBecomeAvailable:(UIApplication *)application {
-    NSLog(@"data decrypted, now available");
+#ifdef DEBUG
+    NSLog(@"app data encrypted");
+#endif
+    
+    [self.logViewController logInfo:@"[Browser] App data decrypted"];
 }
 #endif
 
