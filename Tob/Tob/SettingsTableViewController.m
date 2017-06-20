@@ -534,7 +534,7 @@
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     if (section == 0)
         return NSLocalizedString(@"Recommended search engines", nil);
-    else if (section == 0)
+    else if (section == 1)
         return NSLocalizedString(@"Other search engines", nil);
     
     return nil;
