@@ -6,7 +6,7 @@ mkdir -p "${DEPENDIR}"
 
 echo "Building Tor.framework with Carthage…"
 cd "${REPOROOT}"
-carthage update --platform iOS --verbose
+carthage update --platform iOS --use-submodules --verbose
 
 cp "${REPOROOT}/Carthage/Checkouts/Tor.framework/Tor/tor/src/config/geoip" "${DEPENDIR}/geoip"
 cp "${REPOROOT}/Carthage/Checkouts/Tor.framework/Tor/tor/src/config/geoip6" "${DEPENDIR}/geoip6"
