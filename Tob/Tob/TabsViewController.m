@@ -292,7 +292,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         _addressTextField.backgroundColor = [UIColor whiteColor];
         _addressTextField.textColor = [UIColor blackColor];
         _addressTextField.tintColor = self.view.tintColor;
-        _addressTextField.tlsButton.tintColor = [UIColor blackColor];
+        _addressTextField.tlsButton.tintColor = [UIColor grayColor];
         _addressTextField.cancelButton.tintColor = [UIColor blackColor];
         _addressTextField.refreshButton.tintColor = [UIColor blackColor];
         
@@ -1173,10 +1173,10 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         [_addressTextField setLeftViewMode:UITextFieldViewModeNever];
     } else if ([self.tlsStatuses objectAtIndex:self.tabView.currentIndex] == [NSNumber numberWithInt:TLSSTATUS_SECURE]) {
         [_addressTextField setLeftViewMode:UITextFieldViewModeAlways];
-        [_addressTextField.tlsButton setImage:[[UIImage imageNamed:@"Lock"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+        [_addressTextField.tlsButton setImage:[[UIImage imageNamed:@"Lock"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     } else {
         [_addressTextField setLeftViewMode:UITextFieldViewModeAlways];
-        [_addressTextField.tlsButton setImage:[[UIImage imageNamed:@"BrokenLock"] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+        [_addressTextField.tlsButton setImage:[[UIImage imageNamed:@"BrokenLock"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
 }
 

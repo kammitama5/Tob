@@ -21,7 +21,7 @@
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
-        
+
         self.borderStyle = UITextBorderStyleRoundedRect;
         self.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
         self.textAlignment = NSTextAlignmentCenter;
@@ -41,6 +41,7 @@
         _tlsButton.frame = CGRectMake(_tlsButton.frame.origin.x, _tlsButton.frame.origin.y, 29, 29);
         _tlsButton.backgroundColor = [UIColor clearColor];
         [_tlsButton setImage:[[UIImage imageNamed:@"BrokenLock"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+        [_tlsButton setTintColor:[UIColor grayColor]];
         [_tlsButton setUserInteractionEnabled:NO];
         self.leftView = _tlsButton;
         [self setLeftViewMode:UITextFieldViewModeNever];
@@ -50,7 +51,6 @@
     }
     return self;
 }
-
 
 - (CGRect)textRectForBounds:(CGRect)bounds {
     int margin = 29;
