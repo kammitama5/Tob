@@ -53,11 +53,15 @@ didLaunchObfsProxy
     
     // Detect bookmarks file.
     NSURL *storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:@"Settings.sqlite"];
+    /*
     NSString *oldVersionPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
     oldVersionPath = [oldVersionPath stringByAppendingPathComponent:@"bookmarks.plist"];
     NSFileManager *fileManager = [NSFileManager defaultManager];
     doPrepopulateBookmarks = (![fileManager fileExistsAtPath:[storeURL path]]) || [fileManager fileExistsAtPath:oldVersionPath];
-    
+    */
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    doPrepopulateBookmarks = ![fileManager fileExistsAtPath:[storeURL path]];
+
     [self getSettings];
     
     /* Tell iOS to encrypt everything in the app's sandboxed storage. */

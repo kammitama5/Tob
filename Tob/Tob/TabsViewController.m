@@ -720,6 +720,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 
     NSUInteger i = 0;
     
+    /*
     NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
     path = [path stringByAppendingPathComponent:@"bookmarks.plist"];
     Boolean restored = NO;
@@ -767,6 +768,26 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         if (![context save:&error]) {
             NSLog(@"Error adding bookmarks: %@", error);
         }
+    }
+     */
+    
+    Bookmark *bookmark = (Bookmark *)[NSEntityDescription insertNewObjectForEntityForName:@"Bookmark" inManagedObjectContext:context];
+    [bookmark setTitle:NSLocalizedString(@"Search: DuckDuckGo", nil)];
+    [bookmark setUrl:@"http://3g2upl4pq6kufc4m.onion/html/"];
+    [bookmark setOrder:i++];
+    
+    bookmark = (Bookmark *)[NSEntityDescription insertNewObjectForEntityForName:@"Bookmark" inManagedObjectContext:context];
+    [bookmark setTitle:NSLocalizedString(@"Search: DuckDuckGo (Plain HTTPS)", nil)];
+    [bookmark setUrl:@"https://duckduckgo.com/html/"];
+    [bookmark setOrder:i++];
+    
+    bookmark = (Bookmark *)[NSEntityDescription insertNewObjectForEntityForName:@"Bookmark" inManagedObjectContext:context];
+    [bookmark setTitle:NSLocalizedString(@"IP Address Check", nil)];
+    [bookmark setUrl:@"https://duckduckgo.com/lite/?q=what+is+my+ip"];
+    [bookmark setOrder:i++];
+    
+    if (![context save:&error]) {
+        NSLog(@"Error adding bookmarks: %@", error);
     }
 }
 
@@ -1334,7 +1355,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 }
 
 - (void)updateUnibar {
-    _addressTextField.placeholder = [NSString stringWithFormat:NSLocalizedString(@"Search or enter an address", @"Search or enter an address")];
+    _addressTextField.placeholder = [NSString stringWithFormat:NSLocalizedString(@"Search or enter an address", nil)];
 }
 
 - (void)unibarStopEditing {
