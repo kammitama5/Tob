@@ -43,6 +43,8 @@ connLastAutoIPStack = _connLastAutoIPStack
         _controllerIsAuthenticated = NO;
         _connectionStatus = CONN_STATUS_NONE;
         
+        _currentCircuits = [[NSMutableArray alloc] init];
+        
         AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         NSInteger ipSetting = [[appDelegate.getSettings valueForKey:@"tor_ipv4v6"] integerValue];
         if (ipSetting == OB_IPV4V6_AUTO) {
@@ -116,9 +118,10 @@ connLastAutoIPStack = _connLastAutoIPStack
 #ifdef DEBUG
     NSLog(@"[Tor] Requesting Tor info (getinfo orconn-status)" );
 #endif
-    // getinfo orconn-status: not the user's IP
-    // getinfo circuit-status: not the user's IP
-    // entry-guards: not the user's IP
+    
+    // Reset circuits info
+    _currentCircuits = [[NSMutableArray alloc] init];
+
     [_mSocket writeString:@"getinfo circuit-status\n" encoding:NSUTF8StringEncoding];
 }
 
@@ -304,7 +307,6 @@ connLastAutoIPStack = _connLastAutoIPStack
 
 - (void)netsocket:(ULINetSocket*)inNetSocket dataAvailable:(unsigned)inAmount {
     NSString *msgIn = [_mSocket readString:NSUTF8StringEncoding];
-    NSLog(@"msgIn: %@", msgIn);
     
     if (!_controllerIsAuthenticated) {
         // Response to AUTHENTICATE
@@ -395,8 +397,7 @@ connLastAutoIPStack = _connLastAutoIPStack
         // Response to "getinfo orconn-status"
         // This is a response to a "checkTor" call in the middle of our app.
         if ([msgIn rangeOfString:@"250 OK"].location == NSNotFound) {
-            // Bad stuff! Should HUP since this means we can still talk to
-            // Tor, but Tor is having issues with it's onion routing connections.
+            // Bad stuff! Should HUP since this means we can still talk to Tor, but Tor is having issues with it's onion routing connections.
             NSLog(@"[Tor] Control Port: orconn-status: NOT OK\n    %@",
                   [msgIn
                    stringByReplacingOccurrencesOfString:@"\n"
@@ -418,59 +419,91 @@ connLastAutoIPStack = _connLastAutoIPStack
                                                                  repeats:NO];
         }
     
-    }
-    /*
-    else if ([msgIn rangeOfString:@"entry-guards="].location != NSNotFound) {
+    } else if ([msgIn rangeOfString:@"circuit-status="].location != NSNotFound) {
         NSMutableArray *guards = [[msgIn componentsSeparatedByString: @"\r\n"] mutableCopy];
         
-        if ([guards count] > 1) {
-            // If the value is correct, the first object should be "250+entry-guards="
-            // The next ones should be "$<ID>~<NAME> <STATUS>"
-            [guards removeObjectAtIndex:0];
-            
-            for (NSString *exit in guards) {
-                NSRange r1 = [exit rangeOfString:@"$"];
-                NSRange r2 = [exit rangeOfString:@"~"];
-                NSRange idRange = NSMakeRange(r1.location + r1.length, r2.location - r1.location - r1.length);
-                
-                if (r1.location != NSNotFound && r2.location != NSNotFound && idRange.location != NSNotFound) {
-                    NSString *exitID = [exit substringWithRange:idRange];
-                    NSLog(@"exitID (up): %@", exitID);
-                    
-                    // Get IP for the current exit
-                    [_mSocket writeString:[NSString stringWithFormat:@"getinfo ns/id/%@\n", exitID] encoding:NSUTF8StringEncoding];
-                }
-            }
-        }
-    } 
-     */    
-    else if ([msgIn rangeOfString:@"circuit-status="].location != NSNotFound) {
-        NSMutableArray *guards = [[msgIn componentsSeparatedByString: @"\r\n"] mutableCopy];
-        
-        if ([guards count] > 1) {
-            // If the value is correct, the first object should be "250+entry-guards="
-            // The next ones should be "$<ID>~<NAME> <STATUS>"
-            [guards removeObjectAtIndex:0];
-            
-            for (NSString *exit in guards) {
-                NSRange r1 = [exit rangeOfString:@"$"];
-                NSRange r2 = [exit rangeOfString:@"~"];
-                NSRange idRange = NSMakeRange(r1.location + r1.length, r2.location - r1.location - r1.length);
-                
-                if (r1.location != NSNotFound && r2.location != NSNotFound && idRange.location != NSNotFound) {
-                    NSString *exitID = [exit substringWithRange:idRange];
-                    
 #ifdef DEBUG
-                    NSLog(@"exitID: %@", exitID);
+        NSLog(@"circuit-status guards: %@", guards);
 #endif
+        
+        if ([guards count] > 1) {
+            // If the value is correct, the first object should be "250+entry-guards="
+            // The next ones should be "$<ID>~<NAME> <STATUS>"
+            [guards removeObjectAtIndex:0];
+            
+            // Keep, for each circuit, its ID and order them
+            NSMutableArray *circuitOrder = [[NSMutableArray alloc] init];
+            
+            for (__strong NSString *circuitInfo in guards) {
+                NSMutableArray<TorNode *> *currentNodes = [[NSMutableArray alloc] init];
+                
+                // Format should be "<ID> <STATUS> <NODES> BUILD_FLAGS=<FLAGS> PURPOSE=<PURPOSE> TIME_CREATED=<ISO8601_TIME>"
+                NSArray *info = [circuitInfo componentsSeparatedByString:@" "]; // Infos are separated by spaces
+                
+                // If there isn't enough info, this isn't a circuit
+                if ([info count] < 6)
+                    continue;
+                
+                NSNumber *circuitID = [NSNumber numberWithInt:[[info objectAtIndex:0] intValue]];
+                
+                // Find the proper index for this node for the array to be ordered by ID
+                int index = 0;
+                for (int i = 0; i < [circuitOrder count]; i++) {
+                    if ([[circuitOrder objectAtIndex:i] objectAtIndex:0] > circuitID)
+                        break;
+                    index++;
+                }
+                
+                // Find the build flags and convert them to a list
+                NSString *flags = [[info objectAtIndex:3] substringFromIndex:@"BUILD_FLAGS=".length];
+                NSArray *buildFlags = [flags componentsSeparatedByString:@","]; // Flags are separated by comas
+                
+                // Find the circuit's purpose
+                NSString *purpose = [[info objectAtIndex:4] substringFromIndex:@"PURPOSE=".length];
+                
+                // Find the created time and convert it to a date
+                NSString *timeCreated = [[info objectAtIndex:5] substringFromIndex:@"TIME_CREATED=".length];
+                NSDate *dateCreated = [self parseISO8601Time:timeCreated];
+                
+                TorCircuit *circuit = [[TorCircuit alloc] init];
+                [circuit setID:circuitID];
+                [circuit setBuildFlags:buildFlags];
+                [circuit setPurpose:purpose];
+                [circuit setTimeCreated:dateCreated];
+                [circuitOrder insertObject:[NSArray arrayWithObjects:circuitID, circuit, nil] atIndex:index];
+                
+                NSString *nodes = [info objectAtIndex:2];
+                NSRange r1 = [nodes rangeOfString:@"$"];
+                NSRange r2 = [nodes rangeOfString:@"~"];
+                NSRange idRange = NSMakeRange(r1.location + r1.length, r2.location - r1.location - r1.length);
+
+                while (r1.location != NSNotFound && r2.location != NSNotFound && idRange.location != NSNotFound) {
+                    NSString *nodeID = [nodes substringWithRange:idRange];
+                    
+                    // Add node to the array
+                    TorNode *node = [[TorNode alloc] init];
+                    [node setID:nodeID];
+                    [currentNodes addObject:node];
                     
                     // Get IP for the current exit
-                    [_mSocket writeString:[NSString stringWithFormat:@"getinfo ns/id/%@\n", exitID] encoding:NSUTF8StringEncoding];
+                    [_mSocket writeString:[NSString stringWithFormat:@"getinfo ns/id/%@\n", nodeID] encoding:NSUTF8StringEncoding];
+                    
+                    // Move on to next node (if it exists)
+                    nodes = [nodes substringFromIndex:r2.location + 1];
+                    r1 = [nodes rangeOfString:@"$"];
+                    r2 = [nodes rangeOfString:@"~"];
+                    idRange = NSMakeRange(r1.location + r1.length, r2.location - r1.location - r1.length);
                 }
+                
+                [circuit setNodes:currentNodes];
+            }
+            
+            // Add all the circuits to the array in the right order
+            for (NSArray *circuitInfo in circuitOrder) {
+                [_currentCircuits addObject:[circuitInfo objectAtIndex:1]];
             }
         }
     } else if ([msgIn rangeOfString:@"ns/id/"].location != NSNotFound) {
-        // getinfo ip-to-country/216.66.24.2
         // Multiple results can be received at the same time
         NSArray *requests = [msgIn componentsSeparatedByString:@"250+ns/id/"];
         
@@ -478,24 +511,105 @@ connLastAutoIPStack = _connLastAutoIPStack
             NSMutableArray *infoArray = [[msg componentsSeparatedByString: @"\r\n"] mutableCopy];
             
             if ([infoArray count] > 1) {
-                // Format should be "<NAME> C3ZsrjOVPuRpCX2dprynFoY/jrQ awageVh+KgvJYAgPcG5kruCcJPo <TIME> <IP> 9001 9030"
-                // e.g. "Iroha C3ZsrjOVPuRpCX2dprynFoY/jrQ awageVh+KgvJYAgPcG5kruCcJPo 2016-05-22 05:04:19 185.21.217.32 9001 9030"
+                /* Extract the node's ID */
+                // Format should be "<ID>="
+                NSString *tmp = [infoArray objectAtIndex:0];
+                NSString *nodeID = [tmp substringToIndex:[tmp length] - 1]; // Get rid of the "="
                 
-                NSString *infoString = [infoArray objectAtIndex:1];
-                NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" options:NSRegularExpressionCaseInsensitive error:nil];
-                
-                NSArray* matches = [regex matchesInString:infoString
-                                                  options:0
-                                                    range:NSMakeRange(0, [infoString length])];
-                
-#ifdef DEBUG
-                for (NSTextCheckingResult *match in matches) {
-                    NSLog(@"IP: %@", [infoString substringWithRange:[match rangeAtIndex:0]]);
+                /* Find the matching nodes */
+                NSMutableArray<TorNode *> *correspondingNodes = [[NSMutableArray alloc] init];
+                for (TorCircuit *circuit in self.currentCircuits) {
+                    for (TorNode *node in circuit.nodes) {
+                        if ([node.ID isEqualToString:nodeID]) {
+                            [correspondingNodes addObject:node];
+                            break;
+                        }
+                    }
                 }
-#endif
                 
+                if ([correspondingNodes count] == 0)
+                    return; // We don't care about this node since it's not in self.currentNodes
+                
+                /* Extract the node's name and IP */
+                // Format should be "r <NAME> C3ZsrjOVPuRpCX2dprynFoY/jrQ awageVh+KgvJYAgPcG5kruCcJPo <TIME> <IP> 9001 9030"
+                // e.g. "Iroha C3ZsrjOVPuRpCX2dprynFoY/jrQ awageVh+KgvJYAgPcG5kruCcJPo 2016-05-22 05:04:19 185.21.217.32 9001 9030"
+                tmp = [[infoArray objectAtIndex:1] substringFromIndex:2]; // Get rid of the "r "
+                NSString *nodeName = [tmp substringToIndex:[tmp rangeOfString:@" "].location];
+                
+                NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" options:NSRegularExpressionCaseInsensitive error:nil];
+                NSArray *matches = [regex matchesInString:tmp options:0 range:NSMakeRange(0, [tmp length])];
+                NSString *nodeIP = [tmp substringWithRange:[[matches objectAtIndex:0] rangeAtIndex:0]];
+                
+                for (TorNode *node in correspondingNodes) {
+                    [node setName:nodeName];
+                    [node setIP:nodeIP];
+
+                }
+                
+                // Find the node's country
+                [_mSocket writeString:[NSString stringWithFormat:@"getinfo ip-to-country/%@\n", nodeIP] encoding:NSUTF8StringEncoding];
+                
+                /* Extract the node's version */
+                if ([infoArray count] <= 2)
+                    return;
+                // Format should be "s <VERSION_INFO>"
+                tmp = [[infoArray objectAtIndex:2] substringFromIndex:2]; // Get rid of the "w Bandwidth="
+                for (TorNode *node in correspondingNodes) {
+                    [node setVersion:tmp];
+                }
+
+                /* Extract the node's bandwidth */
+                if ([infoArray count] <= 3)
+                    return;
+                // Format should be "w Bandwidth=<BANDWIDTH>"
+                tmp = [[infoArray objectAtIndex:3] substringFromIndex:12]; // Get rid of the "w Bandwidth="
+                for (TorNode *node in correspondingNodes) {
+                    [node setBandwidth:[NSNumber numberWithInt:[tmp intValue]]];
+                }
             }
         }
+    } else if ([msgIn rangeOfString:@"ip-to-country/"].location != NSNotFound) {
+        // Multiple results can be received at the same time
+        NSArray *requests = [msgIn componentsSeparatedByString:@"250-ip-to-country/"];
+
+        for (NSString *msg in requests) {
+            NSMutableArray *infoArray = [[msg componentsSeparatedByString: @"\r\n"] mutableCopy];
+            
+            if ([infoArray count] > 1) {
+                /* Extract the node's IP */
+                // Format should be "<IP>=<COUNTRY>"
+                NSString *tmp = [infoArray objectAtIndex:0];
+                NSString *nodeIP = [tmp substringToIndex:[tmp rangeOfString:@"="].location];
+                
+                /* Find the matching nodes */
+                NSMutableArray<TorNode *> *correspondingNodes = [[NSMutableArray alloc] init];
+                for (TorCircuit *circuit in self.currentCircuits) {
+                    for (TorNode *node in circuit.nodes) {
+                        if ([node.IP isEqualToString:nodeIP]) {
+                            [correspondingNodes addObject:node];
+                            break;
+                        }
+                    }
+                }
+                
+                if ([correspondingNodes count] == 0)
+                    return; // We don't care about this node since it's not in self.currentNodes
+                
+                /* Extract the node's country */
+                // Format should be "<IP>=<COUNTRY>"
+                for (TorNode *node in correspondingNodes) {
+                    [node setCountry:[tmp substringFromIndex:[tmp rangeOfString:@"="].location + 1]];
+                }
+            }
+        }
+        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+        NSString *logString = @"[Tor] Found all current circuit's info:";
+        
+        for (TorNode *node in [self.currentCircuits objectAtIndex:0].nodes) {
+            logString = [logString stringByAppendingString:[NSString stringWithFormat:@"\n• %@: %@ (%@) - ID=%@, Bandwidth=%@, v=%@", node.name, node.IP, node.country, node.ID, node.bandwidth, node.version]];
+        }
+        
+        [appDelegate.logViewController logInfo:logString];
     } else {
 #ifdef DEBUG
         NSLog(@"msgIn: %@", msgIn);
@@ -504,6 +618,18 @@ connLastAutoIPStack = _connLastAutoIPStack
 }
 
 - (void)netsocketDataSent:(ULINetSocket*)inNetSocket { }
+
+
+#pragma mark - Helper methods
+
+- (NSDate *)parseISO8601Time:(NSString *)date {
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SSSSSS"];
+    NSLocale *posix = [[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"];
+    [formatter setLocale:posix];
+    
+    return [formatter dateFromString:date];
+}
 
 
 @end

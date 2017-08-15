@@ -52,4 +52,3 @@ extern const char AlertViewIncomingUrl;
 - (void)getRestorableData;
 
 @end
-

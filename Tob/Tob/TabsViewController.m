@@ -1205,7 +1205,6 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     [_addressTextField setLeftViewMode:UITextFieldViewModeNever];
 }
 
-// Get IP Address
 - (void)getIPAddress {
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     [appDelegate.tor requestTorInfo];
@@ -1302,6 +1301,8 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         hud.label.text = NSLocalizedString(@"Requesting new identity…", nil);
         
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [appDelegate wipeAppData];
+
             for (int i = 0; i < [[self contentViews] count]; i++) {
                 if (i != self.tabView.currentIndex)
                     [[[self contentViews] objectAtIndex:i] setNeedsForceRefresh:YES];

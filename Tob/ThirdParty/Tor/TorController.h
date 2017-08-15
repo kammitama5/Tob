@@ -9,6 +9,8 @@
 #import "TorWrapper.h"
 #import "ULINetSocket.h"
 #import "JFMinimalNotification.h"
+#import "TorCircuit.h"
+#import "TorNode.h"
 
 @interface TorController : NSObject
 
@@ -32,6 +34,8 @@
 
 @property (nonatomic) unsigned int torSocksPort;
 @property (nonatomic) unsigned int torControlPort;
+
+@property (nonatomic, strong, readonly) NSMutableArray<TorCircuit *> *currentCircuits;
 
 - (id)init;
 - (void)startTor;

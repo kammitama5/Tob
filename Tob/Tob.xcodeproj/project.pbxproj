@@ -69,6 +69,8 @@
 		336182091E09982900642D0F /* Tor.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 336182081E09982900642D0F /* Tor.framework */; };
 		3361820A1E09982900642D0F /* Tor.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 336182081E09982900642D0F /* Tor.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		336E59D81CE877F400F52A46 /* LICENCE - iRate.md in Resources */ = {isa = PBXBuildFile; fileRef = 336012321CE789FA00DDC290 /* LICENCE - iRate.md */; };
+		3373B58E1F42FEE700BC2608 /* TorNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 3373B58D1F42FEE700BC2608 /* TorNode.m */; };
+		3373B5911F43302000BC2608 /* TorCircuit.m in Sources */ = {isa = PBXBuildFile; fileRef = 3373B5901F43302000BC2608 /* TorCircuit.m */; };
 		3396C3691CCF739200C7CCE2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3396C3681CCF739200C7CCE2 /* Assets.xcassets */; };
 		3396C3761CCF752F00C7CCE2 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3396C3751CCF752F00C7CCE2 /* QuartzCore.framework */; };
 		33AFDFDD1CDB326A00B6DFBB /* Entitlements.plist in Resources */ = {isa = PBXBuildFile; fileRef = 33AFDFDC1CDB326A00B6DFBB /* Entitlements.plist */; };
@@ -214,6 +216,10 @@
 		336181F91E09963400642D0F /* geoip6 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = geoip6; sourceTree = "<group>"; };
 		336182061E09975200642D0F /* Iobfs4proxy.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Iobfs4proxy.framework; sourceTree = "<group>"; };
 		336182081E09982900642D0F /* Tor.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Tor.framework; sourceTree = "<group>"; };
+		3373B58C1F42FEE700BC2608 /* TorNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TorNode.h; sourceTree = "<group>"; };
+		3373B58D1F42FEE700BC2608 /* TorNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TorNode.m; sourceTree = "<group>"; };
+		3373B58F1F43302000BC2608 /* TorCircuit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TorCircuit.h; sourceTree = "<group>"; };
+		3373B5901F43302000BC2608 /* TorCircuit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TorCircuit.m; sourceTree = "<group>"; };
 		339570161E05ED3700CCD8DB /* orconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = orconfig.h; sourceTree = "<group>"; };
 		3396C3591CCF739200C7CCE2 /* Tob.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tob.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3396C35D1CCF739200C7CCE2 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -441,6 +447,10 @@
 				334CF94C1CD380E700C3E346 /* TorWrapper.m */,
 				334CF9481CD380E700C3E346 /* TorController.h */,
 				334CF9491CD380E700C3E346 /* TorController.m */,
+				3373B58C1F42FEE700BC2608 /* TorNode.h */,
+				3373B58D1F42FEE700BC2608 /* TorNode.m */,
+				3373B58F1F43302000BC2608 /* TorCircuit.h */,
+				3373B5901F43302000BC2608 /* TorCircuit.m */,
 				334CF9471CD380E700C3E346 /* tor_main.c */,
 				334CF94A1CD380E700C3E346 /* torrc */,
 				336181F81E09963400642D0F /* geoip */,
@@ -669,6 +679,8 @@
 				334CF9691CD380E700C3E346 /* tor_main.c in Sources */,
 				334CF9641CD380E700C3E346 /* Reachability.m in Sources */,
 				333E27121CDB859A00D33B2F /* UIView+Round.m in Sources */,
+				3373B5911F43302000BC2608 /* TorCircuit.m in Sources */,
+				3373B58E1F42FEE700BC2608 /* TorNode.m in Sources */,
 				33C5DB9A1CD2241200102324 /* main.m in Sources */,
 				334CF8C91CD37D5000C3E346 /* UIPlaceHolderTextView.m in Sources */,
 				334CF8B81CD37D0700C3E346 /* ProxyURLProtocol.m in Sources */,
