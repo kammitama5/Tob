@@ -136,6 +136,16 @@ didLaunchObfsProxy
     
     [self startup2];
     
+#ifndef DEBUG
+    NSString *bundleIdentifier = [[NSBundle mainBundle] bundleIdentifier];
+    
+    if (![bundleIdentifier hasPrefix:@"com.JustKodding."]) {
+        // Please don't just copy everything and claim it as your own.
+        // If you want to use parts of this code in your app, go ahead, but make some visible improvements first!
+        exit(0);
+    }
+#endif
+    
     return YES;
 }
 
@@ -777,6 +787,10 @@ void HandleSignal(int signal) {
     }
     if ([d objectForKey:@"tor_ipv4v6"] == nil) {
         [d setObject:[NSNumber numberWithInteger:OB_IPV4V6_AUTO] forKey:@"tor_ipv4v6"];
+        update = YES;
+    }
+    if ([d objectForKey:@"enable-content-blocker"] == nil) {
+        [d setObject:[NSNumber numberWithBool:true] forKey:@"enable-content-blocker"];
         update = YES;
     }
     

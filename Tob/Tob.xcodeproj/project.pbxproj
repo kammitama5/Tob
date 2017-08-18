@@ -75,6 +75,8 @@
 		3396C3761CCF752F00C7CCE2 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3396C3751CCF752F00C7CCE2 /* QuartzCore.framework */; };
 		33AFDFDD1CDB326A00B6DFBB /* Entitlements.plist in Resources */ = {isa = PBXBuildFile; fileRef = 33AFDFDC1CDB326A00B6DFBB /* Entitlements.plist */; };
 		33AFDFEA1CDB703200B6DFBB /* JSTools.js in Resources */ = {isa = PBXBuildFile; fileRef = 33AFDFE91CDB703200B6DFBB /* JSTools.js */; };
+		33B3E8E31F45BCE300714595 /* URLBlocker.m in Sources */ = {isa = PBXBuildFile; fileRef = 33B3E8E21F45BCE300714595 /* URLBlocker.m */; };
+		33B3E8E51F45C2E800714595 /* blockerlist.json in Resources */ = {isa = PBXBuildFile; fileRef = 33B3E8E41F45C2E800714595 /* blockerlist.json */; };
 		33BD084A1E05609F006B2957 /* Ipv6Tester.m in Sources */ = {isa = PBXBuildFile; fileRef = 33BD08491E05609F006B2957 /* Ipv6Tester.m */; };
 		33BD084D1E0581D0006B2957 /* BridgesTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 33BD084C1E0581D0006B2957 /* BridgesTableViewController.m */; };
 		33C5DB971CD2240500102324 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3396C3601CCF739200C7CCE2 /* AppDelegate.m */; };
@@ -234,6 +236,9 @@
 		3396C3971CCF76F300C7CCE2 /* WebViewTab.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebViewTab.m; sourceTree = "<group>"; };
 		33AFDFDC1CDB326A00B6DFBB /* Entitlements.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
 		33AFDFE91CDB703200B6DFBB /* JSTools.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = JSTools.js; sourceTree = "<group>"; };
+		33B3E8E11F45BCE300714595 /* URLBlocker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = URLBlocker.h; sourceTree = "<group>"; };
+		33B3E8E21F45BCE300714595 /* URLBlocker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = URLBlocker.m; sourceTree = "<group>"; };
+		33B3E8E41F45C2E800714595 /* blockerlist.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = blockerlist.json; sourceTree = "<group>"; };
 		33BD08481E05609F006B2957 /* Ipv6Tester.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Ipv6Tester.h; path = ../Ipv6Tester.h; sourceTree = "<group>"; };
 		33BD08491E05609F006B2957 /* Ipv6Tester.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Ipv6Tester.m; path = ../Ipv6Tester.m; sourceTree = "<group>"; };
 		33BD084B1E0581D0006B2957 /* BridgesTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BridgesTableViewController.h; sourceTree = "<group>"; };
@@ -501,6 +506,8 @@
 				33E38F9C1D294CA20003314B /* LogViewController.m */,
 				334CF8B61CD37D0700C3E346 /* ProxyURLProtocol.h */,
 				334CF8B71CD37D0700C3E346 /* ProxyURLProtocol.m */,
+				33B3E8E11F45BCE300714595 /* URLBlocker.h */,
+				33B3E8E21F45BCE300714595 /* URLBlocker.m */,
 				3396C3621CCF739200C7CCE2 /* TabsViewController.h */,
 				3396C3631CCF739200C7CCE2 /* TabsViewController.m */,
 				3396C3961CCF76F300C7CCE2 /* WebViewTab.h */,
@@ -545,6 +552,7 @@
 			isa = PBXGroup;
 			children = (
 				33DD8F631DD623F000D85048 /* TLDs.json */,
+				33B3E8E41F45C2E800714595 /* blockerlist.json */,
 				33D3DA941CDCA832009FCC6B /* Localizable.strings */,
 				334CF8D41CD37E0C00C3E346 /* Launch Screen.xib */,
 				3396C3681CCF739200C7CCE2 /* Assets.xcassets */,
@@ -623,6 +631,7 @@
 				33D3DA921CDCA832009FCC6B /* Localizable.strings in Resources */,
 				33AFDFEA1CDB703200B6DFBB /* JSTools.js in Resources */,
 				33DD8F641DD623F000D85048 /* TLDs.json in Resources */,
+				33B3E8E51F45C2E800714595 /* blockerlist.json in Resources */,
 				336181FB1E09963400642D0F /* geoip6 in Resources */,
 				334CF96B1CD380E700C3E346 /* torrc in Resources */,
 				336012301CE789E600DDC290 /* iRate.bundle in Resources */,
@@ -699,6 +708,7 @@
 				33C5DB981CD2240B00102324 /* TabsViewController.m in Sources */,
 				334CF9511CD380E700C3E346 /* MOScrollView.m in Sources */,
 				333E27101CDB859A00D33B2F /* NSInvocation+Constructors.m in Sources */,
+				33B3E8E31F45BCE300714595 /* URLBlocker.m in Sources */,
 				334CF9571CD380E700C3E346 /* MOTabViewController.m in Sources */,
 				334CF9561CD380E700C3E346 /* MOTabView.m in Sources */,
 				334CF9541CD380E700C3E346 /* MOShadowView.m in Sources */,

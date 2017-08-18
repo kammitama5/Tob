@@ -14,6 +14,7 @@
 "Cancel" = "Cancel";
 "Save" = "Save";
 "Open" = "Open";
+"Add" = "Add";
 "Continue" = "Continue";
 "Clear" = "Clear";
 "Auto" = "Auto";
@@ -64,6 +65,7 @@
 "User Interface" = "User Interface";
 "Privacy" = "Privacy";
 "Security" = "Security";
+"Content blocker" = "Content blocker";
 "Miscellaneous" = "Miscellaneous";
 "Search engine" = "Search engine";
 "Recommended search engines" = "Recommended search engines";
@@ -104,6 +106,9 @@
 "Tor bridges" = "Tor bridges";
 "%ld bridge configured" = "%ld bridge configured";
 "%ld bridges configured" = "%ld bridges configured";
+"Block ads and trackers" = "Block ads and trackers";
+"Whitelist" = "Whitelist";
+"Ruleset" = "Ruleset";
 "Rate on the App Store" = "Rate on the App Store";
 "License" = "License";
 "Leave blank to use default Tob home page." = "Leave blank to use default Tob home page.";
@@ -131,6 +136,12 @@
 "IPv4-only detected" = "IPv4-only detected";
 "Could not detect IP stack state. Using IPv4-only." = "Could not detect IP stack state. Using IPv4-only.";
 "\n\nDefault: Automatic IPv4/IPv6." = "\n\nDefault: Automatic IPv4/IPv6.";
+"The content blocker ruleset contains a list of rules used to prevent ads from loading. This improves security and privacy while saving bandwidth." = "The content blocker ruleset contains a list of rules used to prevent ads from loading. This improves security and privacy while saving bandwidth.";
+"Enable" = "Enable";
+"Disable" = "Disable";
+"Disable temporarly" = "Disable temporarly";
+"The content blocker whitelist contains a list of domains for which the content blocker will allow ads. This can be useful is some websites block browser with ad-blockers." = "The content blocker whitelist contains a list of domains for which the content blocker will allow ads. This can be useful is some websites block browser with ad-blockers.";
+"Whitelist domain" = "Whitelist domain";
 
 /* Tabs view controller */
 "Search or enter an address" = "Search or enter an address";

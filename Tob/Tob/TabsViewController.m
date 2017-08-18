@@ -1012,7 +1012,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 
 - (void)setTabsNeedForceRefresh:(BOOL)needsForceRefresh {
     for (int i = 0; i < [[self subtitles] count]; i++) {
-        [[[self contentViews] objectAtIndex:i] setNeedsForceRefresh:needsForceRefresh];
+        [(WebViewTab *)[[self contentViews] objectAtIndex:i] setNeedsForceRefresh:needsForceRefresh];
     }
 }
 

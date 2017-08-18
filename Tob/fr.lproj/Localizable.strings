@@ -14,6 +14,7 @@
 "Cancel" = "Annuler";
 "Save" = "Enregistrer";
 "Open" = "Ouvrir";
+"Add" = "Ajouter";
 "Continue" = "Continuer";
 "Clear" = "Réinitialiser";
 "Auto" = "Auto";
@@ -64,6 +65,7 @@
 "User Interface" = "Interface";
 "Privacy" = "Vie privée";
 "Security" = "Sécurité";
+"Content blocker" = "Bloqueur de contenu";
 "Miscellaneous" = "Divers";
 "Search engine" = "Moteur de recherche";
 "Reopen tabs" = "Rouvrir les onglets";
@@ -104,6 +106,9 @@
 "Tor bridges" = "Bridges Tor";
 "%ld bridge configured" = "%ld bridge configuré";
 "%ld bridges configured" = "%ld bridges configurés";
+"Block ads and trackers" = "Bloquer les pubs et trackers";
+"Whitelist" = "Liste blanche";
+"Ruleset" = "Règles de blocage";
 "Rate on the App Store" = "Noter sur l'App Store";
 "License" = "License";
 "Leave blank to use default Tob home page." = "Laisser vide pour utiliser la page par défaut.";
@@ -131,6 +136,12 @@
 "IPv4-only detected" = "IPv4 uniquement";
 "Could not detect IP stack state. Using IPv4-only." = "Détection automatique impossible. IPv4 utilisé par défaut.";
 "\n\nDefault: Automatic IPv4/IPv6." = "\n\nValeur par défaut : Détection automatique.";
+"The content blocker ruleset contains a list of rules used to prevent ads from loading. This improves security and privacy while saving bandwidth." = "Les règles de blocage sont des règles utiliser pour empêcher le chargement de publicités. Celà permet d'améliorent la sécurité, de protéger la vie privée et d'accélérer le chargement des pages.";
+"Enable" = "Activer";
+"Disable" = "Désactiver";
+"Disable temporarly" = "Désactiver temporairement";
+"The content blocker whitelist contains a list of domains for which the content blocker will allow ads. This can be useful is some websites block browser with ad-blockers." = "La liste blanche du bloqueur de contenu est une liste de domaines sur lesquels les publicités sont autorisées. Ceci peut être utile si certains sites bloquent les navigateurs utilisant des bloqueurs de publicités.";
+"Whitelist domain" = "Ajouter à la liste blanche";
 
 /* Tabs view controller */
 "Search or enter an address" = "Rechercher ou saisir un site";

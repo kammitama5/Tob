@@ -14,6 +14,7 @@
 #import "BookmarkEditViewController.h"
 #import "Bookmark.h"
 #import "Ipv6Tester.h"
+#import "URLBlocker.h"
 
 @interface SettingsTableViewController ()
 
@@ -53,7 +54,7 @@
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 4;
+    return 5;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -62,8 +63,10 @@
     else if (section == 1)
         return 3; // Cookies, UA spoofing, DNT
     else if (section == 2)
-        return 5; // Active content, Javascript, TLS/SSL, IPv5/IPv4, bridges
+        return 5; // Active content, javascript, TLS/SSL, IPv5/IPv4, bridges
     else if (section == 3)
+        return 3; // Enable content blocker, whitelist, ruleset
+    else if (section == 4)
         return 2; // App store, credits
     else
         return 0;
@@ -77,6 +80,8 @@
     else if (section == 2)
         return NSLocalizedString(@"Security", nil);
     else if (section == 3)
+        return NSLocalizedString(@"Content blocker", nil);
+    else if (section == 4)
         return NSLocalizedString(@"Miscellaneous", nil);
     else
         return nil;
@@ -87,7 +92,7 @@
     
     if ((indexPath.section == 0 && (indexPath.row == 2 || indexPath.row == 3)) || (indexPath.section == 1 && (indexPath.row == 0 || indexPath.row == 1)) || (indexPath.section == 2 && (indexPath.row == 0 || indexPath.row == 2 || indexPath.row == 3)))
         CellIdentifier = @"Detail cell";
-    else if ((indexPath.section == 0 && (indexPath.row == 4 || indexPath.row == 5 || indexPath.row == 6)) || (indexPath.section == 1 && indexPath.row == 2) || (indexPath.section == 2 && indexPath.row == 1))
+    else if ((indexPath.section == 0 && (indexPath.row == 4 || indexPath.row == 5 || indexPath.row == 6)) || (indexPath.section == 1 && indexPath.row == 2) || (indexPath.section == 2 && indexPath.row == 1) || (indexPath.section == 3 && indexPath.row == 0))
         CellIdentifier = @"Switch cell";
     else if (indexPath.section == 2 && indexPath.row == 4)
         CellIdentifier = @"Subtitle cell";
@@ -312,6 +317,31 @@
                 cell.detailTextLabel.text = nil;
         }
     } else if (indexPath.section == 3) {
+        // Content blocker
+        if (indexPath.row == 0) {
+            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+            NSMutableDictionary *settings = appDelegate.getSettings;
+            BOOL blockContent = [[settings valueForKey:@"enable-content-blocker"] boolValue];
+            
+            cell.textLabel.text = NSLocalizedString(@"Block ads and trackers", nil);
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
+            
+            UISwitch *switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
+            cell.accessoryView = switchView;
+            [switchView setOn:blockContent animated:NO];
+            [switchView addTarget:self action:@selector(enableContentBlockerSwitchChanged:) forControlEvents:UIControlEventValueChanged];
+        } else if (indexPath.row == 1) {
+            cell.textLabel.text = NSLocalizedString(@"Whitelist", nil);
+            cell.textLabel.textAlignment = NSTextAlignmentLeft;
+            cell.textLabel.textColor = [UIColor blackColor];
+            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        } else if (indexPath.row == 2) {
+            cell.textLabel.text = NSLocalizedString(@"Ruleset", nil);
+            cell.textLabel.textAlignment = NSTextAlignmentLeft;
+            cell.textLabel.textColor = [UIColor blackColor];
+            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        }
+    } else if (indexPath.section == 4) {
         // Miscellaneous
         if (indexPath.row == 0) {
             cell.textLabel.text = NSLocalizedString(@"Rate on the App Store", nil);
@@ -421,11 +451,23 @@
             [self.navigationController pushViewController:bridgesVC animated:YES];
         }
     } else if (indexPath.section == 3) {
+        if (indexPath.row == 1) {
+            // Whitelist
+            WhitelistTableViewController *whitelistViewController = [[WhitelistTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+            [self.navigationController pushViewController:whitelistViewController animated:YES];
+        } else if (indexPath.row == 2) {
+            // Ruleset
+            RulesetTableViewController *rulesetViewController = [[RulesetTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+            [self.navigationController pushViewController:rulesetViewController animated:YES];
+        }
+    } else if (indexPath.section == 4) {
         if (indexPath.row == 0) {
+            // Rate
             [tableView deselectRowAtIndexPath:indexPath animated:YES];
             NSString *iTunesLink = @"https://itunes.apple.com/app/id1063151782";
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:iTunesLink]];
         } else if (indexPath.row == 1) {
+            // License
             CreditsWebViewController *creditsViewController = [[CreditsWebViewController alloc] init];
             [self.navigationController pushViewController:creditsViewController animated:YES];
         }
@@ -490,6 +532,15 @@
         [settings setObject:[NSNumber numberWithInteger:JS_NO_PREFERENCE] forKey:@"javascript-toggle"];
         [appDelegate saveSettings:settings];
     }
+}
+
+- (void)enableContentBlockerSwitchChanged:(id)sender {
+    UISwitch *switchControl = sender;
+    
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    NSMutableDictionary *settings = appDelegate.getSettings;
+    [settings setObject:[NSNumber numberWithBool:switchControl.on] forKey:@"enable-content-blocker"];
+    [appDelegate saveSettings:settings];
 }
 
 @end
@@ -1265,6 +1316,366 @@
 }
 
 @end
+
+
+
+
+
+@interface WhitelistTableViewController ()
+
+@end
+
+@implementation WhitelistTableViewController {
+    NSArray *domains;
+    NSArray *filteredDomains;
+    UISearchController *searchController;
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    self.navigationItem.title = NSLocalizedString(@"Whitelist", nil);
+    
+    if ([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
+        self.tableView.cellLayoutMarginsFollowReadableWidth = NO;
+    }
+    
+    UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(whitelistDomain)];
+    self.navigationItem.rightBarButtonItem = addButton;
+    
+    domains = [[URLBlocker whitelistedDomains] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+    searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
+    searchController.searchResultsUpdater = self;
+    searchController.dimsBackgroundDuringPresentation = NO;
+    searchController.searchBar.delegate = self;
+    self.tableView.tableHeaderView = searchController.searchBar;
+    
+    [searchController.searchBar sizeToFit]; // https://useyourloaf.com/blog/search-bar-not-showing-without-a-scope-bar/
+    self.definesPresentationContext = YES;
+    // [self.tableView setContentOffset:CGPointMake(0, searchController.searchBar.frame.size.height)];
+}
+
+- (void)whitelistDomain {
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Whitelist domain", nil) message:@"" preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", nil) style:UIAlertActionStyleCancel handler:nil];
+    
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Add", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        NSString *domain = alertController.textFields.firstObject.text;
+        [URLBlocker addDomainToWhitelist:domain];
+        domains = [[URLBlocker whitelistedDomains] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+        [self searchForText:searchController.searchBar.text];
+
+        [self.tableView performSelectorOnMainThread:@selector(reloadData) withObject:nil waitUntilDone:NO];
+    }];
+    
+    [alertController addTextFieldWithConfigurationHandler:^(UITextField *textField) {
+        textField.placeholder = NSLocalizedString(@"Domain", nil);
+        textField.keyboardAppearance = UIKeyboardAppearanceDark;
+        [textField addTarget:self action:@selector(alertTextFieldDidChange:) forControlEvents:UIControlEventEditingChanged];
+        
+        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+        NSString *URL = [[appDelegate.tabsViewController titles] objectAtIndex:appDelegate.tabsViewController.tabView.currentIndex];
+        
+        if (URL.length > 0) {
+            NSURL *currentURL = [NSURL URLWithString:URL];
+            NSString *domain = currentURL.host;
+            
+            if ([domain hasPrefix:@"www."]) {
+                if (domain.length > 4) {
+                    domain = [domain substringFromIndex:4];
+                } else {
+                    domain = @"";
+                }
+            }
+            textField.text = domain;
+            [okAction setEnabled:domain.length > 0];
+        } else {
+            [okAction setEnabled:NO]; // Need at least 1 character
+        }
+    }];
+    
+    [alertController addAction:cancelAction];
+    [alertController addAction:okAction];
+    
+    if ([alertController respondsToSelector:@selector(setPreferredAction:)]) {
+        // This isn't available on iOS 8.
+        // On iOS 8, StyleCancel is in bold
+        [alertController setPreferredAction:okAction];
+    }
+    
+    [self presentViewController:alertController animated:YES completion:nil];
+}
+
+- (void)alertTextFieldDidChange:(UITextField *)sender {
+    UIAlertController *alertController = (UIAlertController *)self.presentedViewController;
+    if (alertController) {
+        UITextField *domainField = alertController.textFields.firstObject;
+        UIAlertAction *okAction = alertController.actions.lastObject;
+        okAction.enabled = domainField.text.length > 0;
+    }
+}
+
+
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if (searchController.searchBar.text.length == 0) {
+        return domains.count;
+    } else if (section == 0) {
+        return filteredDomains.count;
+    }
+    
+    return 0;
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
+    if (section == 0) {
+        return NSLocalizedString(@"The content blocker whitelist contains a list of domains for which the content blocker will allow ads. This can be useful is some websites block browser with ad-blockers.", nil);
+    } else {
+        return nil;
+    }
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString *CellIdentifier = @"Cell";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    
+    if (cell == nil) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
+    }
+    
+    NSString *domain;
+    if (searchController.searchBar.text.length == 0) {
+        // Didn't enter any search string
+        domain = [domains objectAtIndex:indexPath.row];
+    } else {
+        domain = [filteredDomains objectAtIndex:indexPath.row];
+    }
+    cell.textLabel.text = domain;
+    
+    return cell;
+}
+
+
+#pragma mark - Table view delegate
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        NSString *domain;
+        if (searchController.searchBar.text.length == 0) {
+            // Didn't enter any search string
+            domain = [domains objectAtIndex:indexPath.row];
+        } else {
+            domain = [filteredDomains objectAtIndex:indexPath.row];
+        }
+        
+        [URLBlocker removeDomainFromWhitelist:domain];
+        domains = [[URLBlocker whitelistedDomains] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+        [self searchForText:searchController.searchBar.text];
+        
+        [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
+    }
+}
+
+
+#pragma mark - Search controller delegate
+
+- (void)updateSearchResultsForSearchController:(UISearchController *)controller {
+    NSString *searchString = controller.searchBar.text;
+    [self searchForText:searchString];
+    [self.tableView reloadData];
+}
+
+- (void)searchForText:(NSString *)searchText {
+    if (searchText.length == 0) {
+        filteredDomains = nil;
+    } else {
+        filteredDomains = [domains filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"self BEGINSWITH[c] %@", searchText]];
+    }
+}
+
+@end
+
+
+
+
+
+@interface RulesetTableViewController ()
+
+@end
+
+@implementation RulesetTableViewController {
+    NSArray *hosts;
+    NSArray *filteredHosts;
+    UISearchController *searchController;
+}
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    self.navigationItem.title = NSLocalizedString(@"Ruleset", nil);
+    
+    if ([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
+        self.tableView.cellLayoutMarginsFollowReadableWidth = NO;
+    }
+    
+    hosts = [[[URLBlocker blockers] allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+    searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
+    searchController.searchResultsUpdater = self;
+    searchController.dimsBackgroundDuringPresentation = NO;
+    searchController.searchBar.delegate = self;
+    self.tableView.tableHeaderView = searchController.searchBar;
+    
+    [searchController.searchBar sizeToFit]; // https://useyourloaf.com/blog/search-bar-not-showing-without-a-scope-bar/
+    self.definesPresentationContext = YES;
+    [self.tableView setContentOffset:CGPointMake(0, searchController.searchBar.frame.size.height)];
+}
+
+
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    if (!searchController.isActive) {
+        // Not searching, display ruleset info "header"
+        return 2;
+    } else {
+        return 1;
+    }
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if (searchController.searchBar.text.length == 0) {
+        // Didn't enter any search string
+        if (section == 1 || searchController.isActive) {
+            return hosts.count;
+        }
+    } else if (section == 0) {
+        return filteredHosts.count;
+    }
+    
+    return 0;
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
+    if (section == 0 && !searchController.isActive) {
+        return NSLocalizedString(@"The content blocker ruleset contains a list of rules used to prevent ads from loading. This improves security and privacy while saving bandwidth.", nil);
+    } else {
+        return nil;
+    }
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *CellIdentifier = @"Cell";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    
+    if (cell == nil) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
+    }
+    
+    NSString *domain;
+    if (searchController.searchBar.text.length == 0) {
+        // Didn't enter any search string
+        domain = [hosts objectAtIndex:indexPath.row];
+    } else {
+        domain = [filteredHosts objectAtIndex:indexPath.row];
+    }
+    cell.textLabel.text = domain;
+    cell.detailTextLabel.text = [[URLBlocker blockers] objectForKey:domain];
+    
+    BOOL isDisabled = [[URLBlocker disabledBlockers] containsObject:domain];
+    [cell.textLabel setEnabled:!isDisabled];
+    [cell.detailTextLabel setEnabled:!isDisabled];
+    
+    return cell;
+}
+
+
+#pragma mark - Table view delegate
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    UIActionSheet *actionSheet;
+    
+    NSString *domain;
+    if (searchController.searchBar.text.length == 0) {
+        // Didn't enter any search string
+        domain = [hosts objectAtIndex:indexPath.row];
+    } else {
+        domain = [filteredHosts objectAtIndex:indexPath.row];
+    }
+    
+    BOOL isDisabled = [[URLBlocker disabledBlockers] containsObject:domain];
+    
+    if (isDisabled) {
+        actionSheet = [[UIActionSheet alloc] initWithTitle:domain delegate:self cancelButtonTitle:NSLocalizedString(@"Cancel", nil) destructiveButtonTitle:nil otherButtonTitles:NSLocalizedString(@"Enable", nil), nil];
+    } else {
+        actionSheet = [[UIActionSheet alloc] initWithTitle:domain delegate:self cancelButtonTitle:NSLocalizedString(@"Cancel", nil) destructiveButtonTitle:NSLocalizedString(@"Disable", nil) otherButtonTitles:NSLocalizedString(@"Disable temporarly", nil), nil];
+    }
+    
+    [actionSheet setTag:indexPath.row];
+    [actionSheet showInView:self.view];
+    
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+
+#pragma mark - Search controller delegate
+
+- (void)updateSearchResultsForSearchController:(UISearchController *)controller {
+    NSString *searchString = controller.searchBar.text;
+    [self searchForText:searchString];
+    [self.tableView reloadData];
+}
+
+- (void)searchForText:(NSString *)searchText {
+    if (searchText.length == 0) {
+        filteredHosts = nil;
+    } else {
+        filteredHosts = [hosts filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"self BEGINSWITH[c] %@", searchText]];
+    }
+}
+
+
+#pragma mark - Action sheet delegate
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    NSInteger row = [actionSheet tag];
+    
+    if (buttonIndex == actionSheet.cancelButtonIndex)
+        return;
+    
+    NSString *domain;
+    if (searchController.searchBar.text.length == 0) {
+        // Didn't enter any search string
+        domain = [hosts objectAtIndex:row];
+    } else {
+        domain = [filteredHosts objectAtIndex:row];
+    }
+
+    BOOL isDisabled = [[URLBlocker disabledBlockers] containsObject:domain];
+
+    if (isDisabled) {
+        [URLBlocker enableBlockerForHost:domain];
+    } else {
+        if (buttonIndex == actionSheet.destructiveButtonIndex) {
+            [URLBlocker disableBlockerForHost:domain];
+        } else {
+            [URLBlocker temporarilyDisableBlockerForHost:domain];
+        }
+    }
+    
+    [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:row inSection:0]] withRowAnimation:UITableViewRowAnimationAutomatic];
+}
+
+@end
+
 
 
 

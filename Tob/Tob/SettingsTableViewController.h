@@ -40,5 +40,13 @@
 @end
 
 
+@interface WhitelistTableViewController : UITableViewController <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UISearchResultsUpdating>
+@end
+
+
+@interface RulesetTableViewController : UITableViewController <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UISearchResultsUpdating, UIActionSheetDelegate>
+@end
+
+
 @interface CreditsWebViewController : UIViewController <UIWebViewDelegate>
 @end

@@ -11,6 +11,7 @@
 #import "AppDelegate.h"
 #import "NSData+CocoaDevUsersAdditions.h"
 #import "WebViewTab.h"
+#import "URLBlocker.h"
 
 @implementation ProxyURLProtocol
 
@@ -88,8 +89,6 @@
     return request;
 }
 
-
-
 - (void)startLoading {
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     for (WebViewTab *webView in [appDelegate.tabsViewController contentViews]) {
@@ -118,6 +117,21 @@
         NSURLConnection *con = [NSURLConnection connectionWithRequest:newRequest delegate:self];
         [self setConnection:(CKHTTPConnection *)con]; // lie.
     } else {
+        NSMutableDictionary *settings = appDelegate.getSettings;
+        BOOL blockContent = [[settings valueForKey:@"enable-content-blocker"] boolValue];
+        
+        // Check if this request should be blocked
+        if (blockContent && [URLBlocker shouldBlockURL:[[self request] URL] withMainDocumentURL:[[self request] mainDocumentURL]]) {
+#ifdef DEBUG
+            NSLog(@"[ProxyURLProtocol] Blocking request %@", [[self request] URL]);
+#endif
+            
+            // Stop this request from continuing
+            [self.client URLProtocol:self didReceiveResponse:[[NSURLResponse alloc] init] cacheStoragePolicy:NSURLCacheStorageNotAllowed];
+            [self.client URLProtocolDidFinishLoading:self];
+            return;
+        }
+        
         CKHTTPConnection *con = [CKHTTPConnection connectionWithRequest:[self request] delegate:self];
         [self setConnection:con];
     }
