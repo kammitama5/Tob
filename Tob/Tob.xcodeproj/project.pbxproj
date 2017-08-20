@@ -9,6 +9,16 @@
 /* Begin PBXBuildFile section */
 		3303E5091E33B7E10019949A /* LICENSE - MBProgressHUD in Resources */ = {isa = PBXBuildFile; fileRef = 3303E5061E33B7E10019949A /* LICENSE - MBProgressHUD */; };
 		3303E50A1E33B7E10019949A /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 3303E5081E33B7E10019949A /* MBProgressHUD.m */; };
+		3334C3EA1F472DE1007DE2E4 /* LICENSE - MTPageView in Resources */ = {isa = PBXBuildFile; fileRef = 3334C3D91F472DE1007DE2E4 /* LICENSE - MTPageView */; };
+		3334C3EB1F472DE1007DE2E4 /* MTGradiantAlphaView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3334C3DB1F472DE1007DE2E4 /* MTGradiantAlphaView.m */; };
+		3334C3EC1F472DE1007DE2E4 /* MTNavigationBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 3334C3DD1F472DE1007DE2E4 /* MTNavigationBar.m */; };
+		3334C3ED1F472DE1007DE2E4 /* MTPageViewContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3334C3DF1F472DE1007DE2E4 /* MTPageViewContainer.m */; };
+		3334C3EE1F472DE1007DE2E4 /* MTPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3334C3E11F472DE1007DE2E4 /* MTPageViewController.m */; };
+		3334C3EF1F472DE1007DE2E4 /* MTPageViewTab.m in Sources */ = {isa = PBXBuildFile; fileRef = 3334C3E31F472DE1007DE2E4 /* MTPageViewTab.m */; };
+		3334C3F01F472DE1007DE2E4 /* MTScrollBarManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 3334C3E51F472DE1007DE2E4 /* MTScrollBarManager.m */; };
+		3334C3F11F472DE1007DE2E4 /* MTScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3334C3E71F472DE1007DE2E4 /* MTScrollView.m */; };
+		3334C3F21F472DE1007DE2E4 /* MTTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 3334C3E91F472DE1007DE2E4 /* MTTextField.m */; };
+		3334C3F51F472EA0007DE2E4 /* WebTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 3334C3F41F472EA0007DE2E4 /* WebTextField.m */; };
 		333E270D1CDB859A00D33B2F /* JFMinimalNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 333E27031CDB859A00D33B2F /* JFMinimalNotification.m */; };
 		333E270E1CDB859A00D33B2F /* JFMinimalNotificationArt.m in Sources */ = {isa = PBXBuildFile; fileRef = 333E27051CDB859A00D33B2F /* JFMinimalNotificationArt.m */; };
 		333E270F1CDB859A00D33B2F /* LICENSE - JFMinimalNotification in Resources */ = {isa = PBXBuildFile; fileRef = 333E27061CDB859A00D33B2F /* LICENSE - JFMinimalNotification */; };
@@ -35,15 +45,6 @@
 		334CF8E61CD37FA800C3E346 /* libxml2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 334CF8E51CD37FA800C3E346 /* libxml2.tbd */; };
 		334CF8E81CD37FB100C3E346 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 334CF8E71CD37FB100C3E346 /* libz.tbd */; };
 		334CF94F1CD380E700C3E346 /* CKHTTPConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF9101CD380E600C3E346 /* CKHTTPConnection.m */; };
-		334CF9501CD380E700C3E346 /* LICENSE - MOScrollView in Resources */ = {isa = PBXBuildFile; fileRef = 334CF9121CD380E600C3E346 /* LICENSE - MOScrollView */; };
-		334CF9511CD380E700C3E346 /* MOScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF9151CD380E600C3E346 /* MOScrollView.m */; };
-		334CF9521CD380E700C3E346 /* LICENSE - MOTabView in Resources */ = {isa = PBXBuildFile; fileRef = 334CF9171CD380E600C3E346 /* LICENSE - MOTabView */; };
-		334CF9531CD380E700C3E346 /* MOGradientView.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF9191CD380E600C3E346 /* MOGradientView.m */; };
-		334CF9541CD380E700C3E346 /* MOShadowView.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF91B1CD380E600C3E346 /* MOShadowView.m */; };
-		334CF9551CD380E700C3E346 /* MOTabContentView.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF91D1CD380E600C3E346 /* MOTabContentView.m */; };
-		334CF9561CD380E700C3E346 /* MOTabView.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF9201CD380E600C3E346 /* MOTabView.m */; };
-		334CF9571CD380E700C3E346 /* MOTabViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF9221CD380E600C3E346 /* MOTabViewController.m */; };
-		334CF9581CD380E700C3E346 /* MOTitleTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF9241CD380E600C3E346 /* MOTitleTextField.m */; };
 		334CF95C1CD380E700C3E346 /* NSData+CocoaDevUsersAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF92C1CD380E600C3E346 /* NSData+CocoaDevUsersAdditions.m */; };
 		334CF95D1CD380E700C3E346 /* NSData+Conversion.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF92E1CD380E700C3E346 /* NSData+Conversion.m */; };
 		334CF95E1CD380E700C3E346 /* NSStringPunycodeAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF9301CD380E700C3E346 /* NSStringPunycodeAdditions.m */; };
@@ -53,9 +54,6 @@
 		334CF9621CD380E700C3E346 /* QRCodeReaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF9391CD380E700C3E346 /* QRCodeReaderView.m */; };
 		334CF9631CD380E700C3E346 /* QRCodeReaderViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF93B1CD380E700C3E346 /* QRCodeReaderViewController.m */; };
 		334CF9641CD380E700C3E346 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF93D1CD380E700C3E346 /* Reachability.m */; };
-		334CF9651CD380E700C3E346 /* CustomTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF9401CD380E700C3E346 /* CustomTextField.m */; };
-		334CF9661CD380E700C3E346 /* LICENSE - Safari scrolling in Resources */ = {isa = PBXBuildFile; fileRef = 334CF9411CD380E700C3E346 /* LICENSE - Safari scrolling */; };
-		334CF9671CD380E700C3E346 /* UIScreen+isTall.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF9441CD380E700C3E346 /* UIScreen+isTall.m */; };
 		334CF9691CD380E700C3E346 /* tor_main.c in Sources */ = {isa = PBXBuildFile; fileRef = 334CF9471CD380E700C3E346 /* tor_main.c */; };
 		334CF96A1CD380E700C3E346 /* TorController.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF9491CD380E700C3E346 /* TorController.m */; };
 		334CF96B1CD380E700C3E346 /* torrc in Resources */ = {isa = PBXBuildFile; fileRef = 334CF94A1CD380E700C3E346 /* torrc */; };
@@ -81,7 +79,7 @@
 		33BD084D1E0581D0006B2957 /* BridgesTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 33BD084C1E0581D0006B2957 /* BridgesTableViewController.m */; };
 		33C5DB971CD2240500102324 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3396C3601CCF739200C7CCE2 /* AppDelegate.m */; };
 		33C5DB981CD2240B00102324 /* TabsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3396C3631CCF739200C7CCE2 /* TabsViewController.m */; };
-		33C5DB991CD2240F00102324 /* WebViewTab.m in Sources */ = {isa = PBXBuildFile; fileRef = 3396C3971CCF76F300C7CCE2 /* WebViewTab.m */; };
+		33C5DB991CD2240F00102324 /* CustomWebView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3396C3971CCF76F300C7CCE2 /* CustomWebView.m */; };
 		33C5DB9A1CD2241200102324 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3396C35D1CCF739200C7CCE2 /* main.m */; };
 		33D24EA11DD5FFFA0091A7DC /* ObfsWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 33D24EA01DD5FFFA0091A7DC /* ObfsWrapper.m */; };
 		33D3DA8F1CDCA402009FCC6B /* searchEngineURLs.plist in Resources */ = {isa = PBXBuildFile; fileRef = 33D3DA8E1CDCA402009FCC6B /* searchEngineURLs.plist */; };
@@ -119,6 +117,25 @@
 		3303E5061E33B7E10019949A /* LICENSE - MBProgressHUD */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "LICENSE - MBProgressHUD"; sourceTree = "<group>"; };
 		3303E5071E33B7E10019949A /* MBProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
 		3303E5081E33B7E10019949A /* MBProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBProgressHUD.m; sourceTree = "<group>"; };
+		3334C3D91F472DE1007DE2E4 /* LICENSE - MTPageView */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "LICENSE - MTPageView"; sourceTree = "<group>"; };
+		3334C3DA1F472DE1007DE2E4 /* MTGradiantAlphaView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTGradiantAlphaView.h; sourceTree = "<group>"; };
+		3334C3DB1F472DE1007DE2E4 /* MTGradiantAlphaView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTGradiantAlphaView.m; sourceTree = "<group>"; };
+		3334C3DC1F472DE1007DE2E4 /* MTNavigationBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTNavigationBar.h; sourceTree = "<group>"; };
+		3334C3DD1F472DE1007DE2E4 /* MTNavigationBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTNavigationBar.m; sourceTree = "<group>"; };
+		3334C3DE1F472DE1007DE2E4 /* MTPageViewContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTPageViewContainer.h; sourceTree = "<group>"; };
+		3334C3DF1F472DE1007DE2E4 /* MTPageViewContainer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTPageViewContainer.m; sourceTree = "<group>"; };
+		3334C3E01F472DE1007DE2E4 /* MTPageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTPageViewController.h; sourceTree = "<group>"; };
+		3334C3E11F472DE1007DE2E4 /* MTPageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTPageViewController.m; sourceTree = "<group>"; };
+		3334C3E21F472DE1007DE2E4 /* MTPageViewTab.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTPageViewTab.h; sourceTree = "<group>"; };
+		3334C3E31F472DE1007DE2E4 /* MTPageViewTab.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTPageViewTab.m; sourceTree = "<group>"; };
+		3334C3E41F472DE1007DE2E4 /* MTScrollBarManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTScrollBarManager.h; sourceTree = "<group>"; };
+		3334C3E51F472DE1007DE2E4 /* MTScrollBarManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTScrollBarManager.m; sourceTree = "<group>"; };
+		3334C3E61F472DE1007DE2E4 /* MTScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTScrollView.h; sourceTree = "<group>"; };
+		3334C3E71F472DE1007DE2E4 /* MTScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTScrollView.m; sourceTree = "<group>"; };
+		3334C3E81F472DE1007DE2E4 /* MTTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTTextField.h; sourceTree = "<group>"; };
+		3334C3E91F472DE1007DE2E4 /* MTTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTTextField.m; sourceTree = "<group>"; };
+		3334C3F31F472EA0007DE2E4 /* WebTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebTextField.h; sourceTree = "<group>"; };
+		3334C3F41F472EA0007DE2E4 /* WebTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebTextField.m; sourceTree = "<group>"; };
 		333E27021CDB859A00D33B2F /* JFMinimalNotification.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFMinimalNotification.h; sourceTree = "<group>"; };
 		333E27031CDB859A00D33B2F /* JFMinimalNotification.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JFMinimalNotification.m; sourceTree = "<group>"; };
 		333E27041CDB859A00D33B2F /* JFMinimalNotificationArt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JFMinimalNotificationArt.h; sourceTree = "<group>"; };
@@ -160,24 +177,6 @@
 		334CF8E71CD37FB100C3E346 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		334CF90F1CD380E600C3E346 /* CKHTTPConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CKHTTPConnection.h; sourceTree = "<group>"; };
 		334CF9101CD380E600C3E346 /* CKHTTPConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CKHTTPConnection.m; sourceTree = "<group>"; };
-		334CF9121CD380E600C3E346 /* LICENSE - MOScrollView */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "LICENSE - MOScrollView"; sourceTree = "<group>"; };
-		334CF9131CD380E600C3E346 /* MOScrollView-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "MOScrollView-Prefix.pch"; sourceTree = "<group>"; };
-		334CF9141CD380E600C3E346 /* MOScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MOScrollView.h; sourceTree = "<group>"; };
-		334CF9151CD380E600C3E346 /* MOScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MOScrollView.m; sourceTree = "<group>"; };
-		334CF9171CD380E600C3E346 /* LICENSE - MOTabView */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "LICENSE - MOTabView"; sourceTree = "<group>"; };
-		334CF9181CD380E600C3E346 /* MOGradientView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MOGradientView.h; sourceTree = "<group>"; };
-		334CF9191CD380E600C3E346 /* MOGradientView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MOGradientView.m; sourceTree = "<group>"; };
-		334CF91A1CD380E600C3E346 /* MOShadowView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MOShadowView.h; sourceTree = "<group>"; };
-		334CF91B1CD380E600C3E346 /* MOShadowView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MOShadowView.m; sourceTree = "<group>"; };
-		334CF91C1CD380E600C3E346 /* MOTabContentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MOTabContentView.h; sourceTree = "<group>"; };
-		334CF91D1CD380E600C3E346 /* MOTabContentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MOTabContentView.m; sourceTree = "<group>"; };
-		334CF91E1CD380E600C3E346 /* MOTabView-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "MOTabView-Prefix.pch"; sourceTree = "<group>"; };
-		334CF91F1CD380E600C3E346 /* MOTabView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MOTabView.h; sourceTree = "<group>"; };
-		334CF9201CD380E600C3E346 /* MOTabView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MOTabView.m; sourceTree = "<group>"; };
-		334CF9211CD380E600C3E346 /* MOTabViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MOTabViewController.h; sourceTree = "<group>"; };
-		334CF9221CD380E600C3E346 /* MOTabViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MOTabViewController.m; sourceTree = "<group>"; };
-		334CF9231CD380E600C3E346 /* MOTitleTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MOTitleTextField.h; sourceTree = "<group>"; };
-		334CF9241CD380E600C3E346 /* MOTitleTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MOTitleTextField.m; sourceTree = "<group>"; };
 		334CF92B1CD380E600C3E346 /* NSData+CocoaDevUsersAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+CocoaDevUsersAdditions.h"; sourceTree = "<group>"; };
 		334CF92C1CD380E600C3E346 /* NSData+CocoaDevUsersAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+CocoaDevUsersAdditions.m"; sourceTree = "<group>"; };
 		334CF92D1CD380E600C3E346 /* NSData+Conversion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+Conversion.h"; sourceTree = "<group>"; };
@@ -196,12 +195,6 @@
 		334CF93B1CD380E700C3E346 /* QRCodeReaderViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QRCodeReaderViewController.m; sourceTree = "<group>"; };
 		334CF93C1CD380E700C3E346 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
 		334CF93D1CD380E700C3E346 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
-		334CF93F1CD380E700C3E346 /* CustomTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomTextField.h; sourceTree = "<group>"; };
-		334CF9401CD380E700C3E346 /* CustomTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CustomTextField.m; sourceTree = "<group>"; };
-		334CF9411CD380E700C3E346 /* LICENSE - Safari scrolling */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "LICENSE - Safari scrolling"; sourceTree = "<group>"; };
-		334CF9421CD380E700C3E346 /* Safari Scrolling-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Safari Scrolling-Prefix.pch"; sourceTree = "<group>"; };
-		334CF9431CD380E700C3E346 /* UIScreen+isTall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIScreen+isTall.h"; sourceTree = "<group>"; };
-		334CF9441CD380E700C3E346 /* UIScreen+isTall.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIScreen+isTall.m"; sourceTree = "<group>"; };
 		334CF9471CD380E700C3E346 /* tor_main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tor_main.c; sourceTree = "<group>"; };
 		334CF9481CD380E700C3E346 /* TorController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TorController.h; sourceTree = "<group>"; };
 		334CF9491CD380E700C3E346 /* TorController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TorController.m; sourceTree = "<group>"; };
@@ -232,8 +225,8 @@
 		3396C3681CCF739200C7CCE2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Tob/Assets.xcassets; sourceTree = "<group>"; };
 		3396C36D1CCF739200C7CCE2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3396C3751CCF752F00C7CCE2 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
-		3396C3961CCF76F300C7CCE2 /* WebViewTab.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebViewTab.h; sourceTree = "<group>"; };
-		3396C3971CCF76F300C7CCE2 /* WebViewTab.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebViewTab.m; sourceTree = "<group>"; };
+		3396C3961CCF76F300C7CCE2 /* CustomWebView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomWebView.h; sourceTree = "<group>"; };
+		3396C3971CCF76F300C7CCE2 /* CustomWebView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CustomWebView.m; sourceTree = "<group>"; };
 		33AFDFDC1CDB326A00B6DFBB /* Entitlements.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
 		33AFDFE91CDB703200B6DFBB /* JSTools.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = JSTools.js; sourceTree = "<group>"; };
 		33B3E8E11F45BCE300714595 /* URLBlocker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = URLBlocker.h; sourceTree = "<group>"; };
@@ -285,6 +278,30 @@
 				3303E5081E33B7E10019949A /* MBProgressHUD.m */,
 			);
 			path = MBProgressHUD;
+			sourceTree = "<group>";
+		};
+		3334C3D81F472DE1007DE2E4 /* MTPageView */ = {
+			isa = PBXGroup;
+			children = (
+				3334C3D91F472DE1007DE2E4 /* LICENSE - MTPageView */,
+				3334C3DA1F472DE1007DE2E4 /* MTGradiantAlphaView.h */,
+				3334C3DB1F472DE1007DE2E4 /* MTGradiantAlphaView.m */,
+				3334C3DC1F472DE1007DE2E4 /* MTNavigationBar.h */,
+				3334C3DD1F472DE1007DE2E4 /* MTNavigationBar.m */,
+				3334C3DE1F472DE1007DE2E4 /* MTPageViewContainer.h */,
+				3334C3DF1F472DE1007DE2E4 /* MTPageViewContainer.m */,
+				3334C3E01F472DE1007DE2E4 /* MTPageViewController.h */,
+				3334C3E11F472DE1007DE2E4 /* MTPageViewController.m */,
+				3334C3E21F472DE1007DE2E4 /* MTPageViewTab.h */,
+				3334C3E31F472DE1007DE2E4 /* MTPageViewTab.m */,
+				3334C3E41F472DE1007DE2E4 /* MTScrollBarManager.h */,
+				3334C3E51F472DE1007DE2E4 /* MTScrollBarManager.m */,
+				3334C3E61F472DE1007DE2E4 /* MTScrollView.h */,
+				3334C3E71F472DE1007DE2E4 /* MTScrollView.m */,
+				3334C3E81F472DE1007DE2E4 /* MTTextField.h */,
+				3334C3E91F472DE1007DE2E4 /* MTTextField.m */,
+			);
+			path = MTPageView;
 			sourceTree = "<group>";
 		};
 		333E27011CDB859A00D33B2F /* JFMinimalNotification */ = {
@@ -352,8 +369,7 @@
 				3360122C1CE789E600DDC290 /* iRate */,
 				333E27011CDB859A00D33B2F /* JFMinimalNotification */,
 				3303E5051E33B7E10019949A /* MBProgressHUD */,
-				334CF9111CD380E600C3E346 /* MOScrollView */,
-				334CF9161CD380E600C3E346 /* MOTabView */,
+				3334C3D81F472DE1007DE2E4 /* MTPageView */,
 				334CF92B1CD380E600C3E346 /* NSData+CocoaDevUsersAdditions.h */,
 				334CF92C1CD380E600C3E346 /* NSData+CocoaDevUsersAdditions.m */,
 				334CF92D1CD380E600C3E346 /* NSData+Conversion.h */,
@@ -363,7 +379,6 @@
 				334CF9311CD380E700C3E346 /* QRCodeReaderViewController */,
 				334CF93C1CD380E700C3E346 /* Reachability.h */,
 				334CF93D1CD380E700C3E346 /* Reachability.m */,
-				334CF93E1CD380E700C3E346 /* Safari scrolling */,
 				334CF94D1CD380E700C3E346 /* ULINetSocket.h */,
 				334CF94E1CD380E700C3E346 /* ULINetSocket.m */,
 			);
@@ -377,38 +392,6 @@
 				334CF9101CD380E600C3E346 /* CKHTTPConnection.m */,
 			);
 			path = ConnectionKit;
-			sourceTree = "<group>";
-		};
-		334CF9111CD380E600C3E346 /* MOScrollView */ = {
-			isa = PBXGroup;
-			children = (
-				334CF9121CD380E600C3E346 /* LICENSE - MOScrollView */,
-				334CF9131CD380E600C3E346 /* MOScrollView-Prefix.pch */,
-				334CF9141CD380E600C3E346 /* MOScrollView.h */,
-				334CF9151CD380E600C3E346 /* MOScrollView.m */,
-			);
-			path = MOScrollView;
-			sourceTree = "<group>";
-		};
-		334CF9161CD380E600C3E346 /* MOTabView */ = {
-			isa = PBXGroup;
-			children = (
-				334CF9171CD380E600C3E346 /* LICENSE - MOTabView */,
-				334CF9181CD380E600C3E346 /* MOGradientView.h */,
-				334CF9191CD380E600C3E346 /* MOGradientView.m */,
-				334CF91A1CD380E600C3E346 /* MOShadowView.h */,
-				334CF91B1CD380E600C3E346 /* MOShadowView.m */,
-				334CF91C1CD380E600C3E346 /* MOTabContentView.h */,
-				334CF91D1CD380E600C3E346 /* MOTabContentView.m */,
-				334CF91E1CD380E600C3E346 /* MOTabView-Prefix.pch */,
-				334CF91F1CD380E600C3E346 /* MOTabView.h */,
-				334CF9201CD380E600C3E346 /* MOTabView.m */,
-				334CF9211CD380E600C3E346 /* MOTabViewController.h */,
-				334CF9221CD380E600C3E346 /* MOTabViewController.m */,
-				334CF9231CD380E600C3E346 /* MOTitleTextField.h */,
-				334CF9241CD380E600C3E346 /* MOTitleTextField.m */,
-			);
-			path = MOTabView;
 			sourceTree = "<group>";
 		};
 		334CF9311CD380E700C3E346 /* QRCodeReaderViewController */ = {
@@ -426,19 +409,6 @@
 				334CF93B1CD380E700C3E346 /* QRCodeReaderViewController.m */,
 			);
 			path = QRCodeReaderViewController;
-			sourceTree = "<group>";
-		};
-		334CF93E1CD380E700C3E346 /* Safari scrolling */ = {
-			isa = PBXGroup;
-			children = (
-				334CF9411CD380E700C3E346 /* LICENSE - Safari scrolling */,
-				334CF93F1CD380E700C3E346 /* CustomTextField.h */,
-				334CF9401CD380E700C3E346 /* CustomTextField.m */,
-				334CF9421CD380E700C3E346 /* Safari Scrolling-Prefix.pch */,
-				334CF9431CD380E700C3E346 /* UIScreen+isTall.h */,
-				334CF9441CD380E700C3E346 /* UIScreen+isTall.m */,
-			);
-			path = "Safari scrolling";
 			sourceTree = "<group>";
 		};
 		334CF9451CD380E700C3E346 /* Tor */ = {
@@ -510,8 +480,10 @@
 				33B3E8E21F45BCE300714595 /* URLBlocker.m */,
 				3396C3621CCF739200C7CCE2 /* TabsViewController.h */,
 				3396C3631CCF739200C7CCE2 /* TabsViewController.m */,
-				3396C3961CCF76F300C7CCE2 /* WebViewTab.h */,
-				3396C3971CCF76F300C7CCE2 /* WebViewTab.m */,
+				3334C3F31F472EA0007DE2E4 /* WebTextField.h */,
+				3334C3F41F472EA0007DE2E4 /* WebTextField.m */,
+				3396C3961CCF76F300C7CCE2 /* CustomWebView.h */,
+				3396C3971CCF76F300C7CCE2 /* CustomWebView.m */,
 				334CF8B91CD37D1700C3E346 /* Settings */,
 				3396C35C1CCF739200C7CCE2 /* Supporting Files */,
 			);
@@ -638,10 +610,8 @@
 				334CF8D51CD37E0C00C3E346 /* Launch Screen.xib in Resources */,
 				3303E5091E33B7E10019949A /* LICENSE - MBProgressHUD in Resources */,
 				334CF95F1CD380E700C3E346 /* LICENSE - QRCodeReaderViewController in Resources */,
-				334CF9661CD380E700C3E346 /* LICENSE - Safari scrolling in Resources */,
+				3334C3EA1F472DE1007DE2E4 /* LICENSE - MTPageView in Resources */,
 				336181FA1E09963400642D0F /* geoip in Resources */,
-				334CF9501CD380E700C3E346 /* LICENSE - MOScrollView in Resources */,
-				334CF9521CD380E700C3E346 /* LICENSE - MOTabView in Resources */,
 				333E270F1CDB859A00D33B2F /* LICENSE - JFMinimalNotification in Resources */,
 				336E59D81CE877F400F52A46 /* LICENCE - iRate.md in Resources */,
 				33FF98911CDA5CFE0086AED5 /* credits.html in Resources */,
@@ -673,31 +643,32 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				334CF9531CD380E700C3E346 /* MOGradientView.m in Sources */,
-				334CF9671CD380E700C3E346 /* UIScreen+isTall.m in Sources */,
+				3334C3F11F472DE1007DE2E4 /* MTScrollView.m in Sources */,
 				334CF9611CD380E700C3E346 /* QRCodeReader.m in Sources */,
 				334CF95E1CD380E700C3E346 /* NSStringPunycodeAdditions.m in Sources */,
 				33C5DB971CD2240500102324 /* AppDelegate.m in Sources */,
+				3334C3EE1F472DE1007DE2E4 /* MTPageViewController.m in Sources */,
 				333E27111CDB859A00D33B2F /* UIColor+JFMinimalNotificationColors.m in Sources */,
 				334CF8D11CD37D7000C3E346 /* Bookmark.m in Sources */,
 				33BD084A1E05609F006B2957 /* Ipv6Tester.m in Sources */,
 				334CF8D21CD37D7000C3E346 /* BookmarkEditViewController.m in Sources */,
+				3334C3ED1F472DE1007DE2E4 /* MTPageViewContainer.m in Sources */,
 				334CF9631CD380E700C3E346 /* QRCodeReaderViewController.m in Sources */,
 				334CF95C1CD380E700C3E346 /* NSData+CocoaDevUsersAdditions.m in Sources */,
 				334CF9621CD380E700C3E346 /* QRCodeReaderView.m in Sources */,
 				334CF9691CD380E700C3E346 /* tor_main.c in Sources */,
 				334CF9641CD380E700C3E346 /* Reachability.m in Sources */,
+				3334C3F21F472DE1007DE2E4 /* MTTextField.m in Sources */,
 				333E27121CDB859A00D33B2F /* UIView+Round.m in Sources */,
+				3334C3EC1F472DE1007DE2E4 /* MTNavigationBar.m in Sources */,
 				3373B5911F43302000BC2608 /* TorCircuit.m in Sources */,
 				3373B58E1F42FEE700BC2608 /* TorNode.m in Sources */,
 				33C5DB9A1CD2241200102324 /* main.m in Sources */,
 				334CF8C91CD37D5000C3E346 /* UIPlaceHolderTextView.m in Sources */,
 				334CF8B81CD37D0700C3E346 /* ProxyURLProtocol.m in Sources */,
 				334CF8D31CD37D7000C3E346 /* BookmarkTableViewController.m in Sources */,
-				334CF9651CD380E700C3E346 /* CustomTextField.m in Sources */,
 				334CF8C71CD37D5000C3E346 /* Bridge.m in Sources */,
 				334CF8BD1CD37D2F00C3E346 /* Settings.xcdatamodeld in Sources */,
-				334CF9551CD380E700C3E346 /* MOTabContentView.m in Sources */,
 				336012311CE789E600DDC290 /* iRate.m in Sources */,
 				333E270D1CDB859A00D33B2F /* JFMinimalNotification.m in Sources */,
 				3303E50A1E33B7E10019949A /* MBProgressHUD.m in Sources */,
@@ -706,22 +677,21 @@
 				334CF9601CD380E700C3E346 /* QRCameraSwitchButton.m in Sources */,
 				334CF96D1CD380E700C3E346 /* ULINetSocket.m in Sources */,
 				33C5DB981CD2240B00102324 /* TabsViewController.m in Sources */,
-				334CF9511CD380E700C3E346 /* MOScrollView.m in Sources */,
 				333E27101CDB859A00D33B2F /* NSInvocation+Constructors.m in Sources */,
 				33B3E8E31F45BCE300714595 /* URLBlocker.m in Sources */,
-				334CF9571CD380E700C3E346 /* MOTabViewController.m in Sources */,
-				334CF9561CD380E700C3E346 /* MOTabView.m in Sources */,
-				334CF9541CD380E700C3E346 /* MOShadowView.m in Sources */,
 				334CF95D1CD380E700C3E346 /* NSData+Conversion.m in Sources */,
+				3334C3EB1F472DE1007DE2E4 /* MTGradiantAlphaView.m in Sources */,
 				33D24EA11DD5FFFA0091A7DC /* ObfsWrapper.m in Sources */,
 				33E38F9D1D294CA20003314B /* LogViewController.m in Sources */,
 				334CF94F1CD380E700C3E346 /* CKHTTPConnection.m in Sources */,
 				33BD084D1E0581D0006B2957 /* BridgesTableViewController.m in Sources */,
-				334CF9581CD380E700C3E346 /* MOTitleTextField.m in Sources */,
+				3334C3EF1F472DE1007DE2E4 /* MTPageViewTab.m in Sources */,
 				333E270E1CDB859A00D33B2F /* JFMinimalNotificationArt.m in Sources */,
 				334CF96C1CD380E700C3E346 /* TorWrapper.m in Sources */,
+				3334C3F51F472EA0007DE2E4 /* WebTextField.m in Sources */,
 				334CF8C01CD37D4100C3E346 /* SettingsTableViewController.m in Sources */,
-				33C5DB991CD2240F00102324 /* WebViewTab.m in Sources */,
+				33C5DB991CD2240F00102324 /* CustomWebView.m in Sources */,
+				3334C3F01F472DE1007DE2E4 /* MTScrollBarManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

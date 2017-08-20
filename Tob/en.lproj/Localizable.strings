@@ -163,6 +163,7 @@
 "IP: Error, trying again…" = "IP: Error, trying again…";
 "Bridge Configuration" = "Bridge Configuration";
 "You can configure bridges here if your ISP normally blocks access to Tor.\n\nIf you did not mean to access the Bridge configuration, press \"Cancel\", then \"Restart App\", and then re-launch Tob." = "You can configure bridges here if your ISP normally blocks access to Tor.\n\nIf you did not mean to access the Bridge configuration, press \"Cancel\", then \"Restart App\", and then re-launch Tob.";
+"Close all tabs" = "Close all tabs";
 
 /* WebView tab*/
 "Loading..." = "Loading...";

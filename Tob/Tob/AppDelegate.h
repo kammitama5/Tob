@@ -57,8 +57,8 @@
 @property (strong, nonatomic) UIWindow *window;
 @property (strong, nonatomic) UIImageView *windowOverlay;
 
-@property(strong, nonatomic) TabsViewController *tabsViewController;
-@property(strong, nonatomic) LogViewController *logViewController;
+@property (strong, nonatomic) TabsViewController *tabsViewController;
+@property (strong, nonatomic) LogViewController *logViewController;
 @property (strong, nonatomic) TorController *tor;
 @property (strong, nonatomic) ObfsWrapper *obfsproxy;
 

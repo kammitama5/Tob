@@ -370,8 +370,8 @@
             NSManagedObjectContext *managedObjectContext = [appDelegate managedObjectContext];
             Bookmark *bookmark = (Bookmark *)[NSEntityDescription insertNewObjectForEntityForName:@"Bookmark" inManagedObjectContext:managedObjectContext];
             
-            [bookmark setTitle:[[appDelegate.tabsViewController subtitles] objectAtIndex:appDelegate.tabsViewController.tabView.currentIndex]];
-            [bookmark setUrl:[[appDelegate.tabsViewController titles] objectAtIndex:appDelegate.tabsViewController.tabView.currentIndex]];
+            [bookmark setTitle:[[appDelegate.tabsViewController tabAtIndex:appDelegate.tabsViewController.currentIndex] title]];
+            [bookmark setUrl:[[[[appDelegate.tabsViewController contentViews] objectAtIndex:appDelegate.tabsViewController.currentIndex] url] absoluteString]];
             
             BookmarkEditViewController *editController = [[BookmarkEditViewController alloc] initWithBookmark:bookmark isEditing:NO];
             [self presentViewController:editController animated:YES completion:nil];
@@ -1376,7 +1376,7 @@
         [textField addTarget:self action:@selector(alertTextFieldDidChange:) forControlEvents:UIControlEventEditingChanged];
         
         AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-        NSString *URL = [[appDelegate.tabsViewController titles] objectAtIndex:appDelegate.tabsViewController.tabView.currentIndex];
+        NSString *URL = [[[[appDelegate.tabsViewController contentViews] objectAtIndex:appDelegate.tabsViewController.currentIndex] url] absoluteString];
         
         if (URL.length > 0) {
             NSURL *currentURL = [NSURL URLWithString:URL];
@@ -1483,6 +1483,25 @@
     }
 }
 
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    UIActionSheet *actionSheet;
+    
+    NSString *domain;
+    if (searchController.searchBar.text.length == 0) {
+        // Didn't enter any search string
+        domain = [domains objectAtIndex:indexPath.row];
+    } else {
+        domain = [filteredDomains objectAtIndex:indexPath.row];
+    }
+    
+    actionSheet = [[UIActionSheet alloc] initWithTitle:domain delegate:self cancelButtonTitle:NSLocalizedString(@"Cancel", nil) destructiveButtonTitle:NSLocalizedString(@"Delete", nil) otherButtonTitles:nil];
+    
+    [actionSheet setTag:indexPath.row];
+    [actionSheet showInView:self.view];
+    
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
 
 #pragma mark - Search controller delegate
 
@@ -1498,6 +1517,30 @@
     } else {
         filteredDomains = [domains filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"self BEGINSWITH[c] %@", searchText]];
     }
+}
+
+
+#pragma mark - Action sheet delegate
+
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    NSInteger row = [actionSheet tag];
+    
+    if (buttonIndex == actionSheet.cancelButtonIndex)
+        return;
+    
+    NSString *domain;
+    if (searchController.searchBar.text.length == 0) {
+        // Didn't enter any search string
+        domain = [domains objectAtIndex:row];
+    } else {
+        domain = [filteredDomains objectAtIndex:row];
+    }
+
+    [URLBlocker removeDomainFromWhitelist:domain];
+    domains = [[URLBlocker whitelistedDomains] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+    [self searchForText:searchController.searchBar.text];
+    
+    [self.tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForRow:row inSection:0]] withRowAnimation:UITableViewRowAnimationFade];
 }
 
 @end
@@ -1516,8 +1559,7 @@
     UISearchController *searchController;
 }
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
     
     self.navigationItem.title = NSLocalizedString(@"Ruleset", nil);
@@ -1571,8 +1613,7 @@
     }
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     static NSString *CellIdentifier = @"Cell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     

@@ -40,7 +40,7 @@
 @end
 
 
-@interface WhitelistTableViewController : UITableViewController <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UISearchResultsUpdating>
+@interface WhitelistTableViewController : UITableViewController <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UISearchResultsUpdating, UIActionSheetDelegate>
 @end
 
 

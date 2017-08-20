@@ -128,7 +128,6 @@ didLaunchObfsProxy
     
     logViewController = [[LogViewController alloc] init];
     tabsViewController = [[TabsViewController alloc] init];
-    tabsViewController.restorationIdentifier = @"WebViewController";
     
     _window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     _window.rootViewController = tabsViewController;

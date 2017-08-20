@@ -262,27 +262,28 @@
             [self presentViewController:editController animated:YES completion:nil];
         }
     } else {
+        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+
         if (indexPath.section == 0) {
-            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
             NSString *urlString = appDelegate.homepage;
             NSURL *url = [NSURL URLWithString:urlString];
             
             [appDelegate.tabsViewController loadURL:url];
-            [appDelegate.tabsViewController.titles replaceObjectAtIndex:appDelegate.tabsViewController.tabView.currentIndex withObject:urlString];
+            [[[appDelegate.tabsViewController contentViews] objectAtIndex:appDelegate.tabsViewController.currentIndex] setUrl:url];
             [self goBack];
-            
         } else {
             NSURL *url;
             NSString *urlString;
             Bookmark *bookmark = (Bookmark *)[bookmarksArray objectAtIndex:indexPath.row];
             urlString = bookmark.url;
             
-            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
             url = [NSURL URLWithString:urlString];
             [appDelegate.tabsViewController loadURL:url];
-            [appDelegate.tabsViewController.titles replaceObjectAtIndex:appDelegate.tabsViewController.tabView.currentIndex withObject:urlString];
+            [[[appDelegate.tabsViewController contentViews] objectAtIndex:appDelegate.tabsViewController.currentIndex] setUrl:url];
             [self goBack];
         }
+        
+        [[[appDelegate.tabsViewController navBar] textField] resignFirstResponder];
     }
 }
 
@@ -290,9 +291,8 @@
     Bookmark *bookmark = (Bookmark *)[NSEntityDescription insertNewObjectForEntityForName:@"Bookmark" inManagedObjectContext:managedObjectContext];
     
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    
-    [bookmark setTitle:[[appDelegate.tabsViewController subtitles] objectAtIndex:appDelegate.tabsViewController.tabView.currentIndex]];
-    [bookmark setUrl:[[appDelegate.tabsViewController titles] objectAtIndex:appDelegate.tabsViewController.tabView.currentIndex]];
+    [bookmark setTitle:[[appDelegate.tabsViewController currentTab] title]];
+    [bookmark setUrl:[[[[appDelegate.tabsViewController contentViews] objectAtIndex:appDelegate.tabsViewController.currentIndex] url] absoluteString]];
     
     int16_t order = [bookmarksArray count];
     [bookmark setOrder:order];

@@ -10,7 +10,7 @@
 #import <Foundation/NSURLProtocol.h>
 #import "AppDelegate.h"
 #import "NSData+CocoaDevUsersAdditions.h"
-#import "WebViewTab.h"
+#import "CustomWebView.h"
 #import "URLBlocker.h"
 
 @implementation ProxyURLProtocol
@@ -91,7 +91,7 @@
 
 - (void)startLoading {
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    for (WebViewTab *webView in [appDelegate.tabsViewController contentViews]) {
+    for (CustomWebView *webView in [appDelegate.tabsViewController contentViews]) {
         if ([webView isLoading] && [[[[webView url] host] stringByReplacingOccurrencesOfString:@"www." withString:@""] isEqualToString:[[[_request mainDocumentURL] host] stringByReplacingOccurrencesOfString:@"www." withString:@""]] && [[[webView url] pathComponents] isEqualToArray:[[_request mainDocumentURL] pathComponents]]) {
             
             NSNumber *requestCount = [NSNumber numberWithInt:[[[webView progressDictionary] objectForKey:@"requestCount"] intValue] + 1];
@@ -201,7 +201,7 @@
     NSMutableDictionary *settings = appDelegate.getSettings;
     
     if ([[[[_request mainDocumentURL] scheme] lowercaseString] isEqualToString:@"https"] && ![[[[response URL] scheme] lowercaseString] isEqualToString:@"https"]) {
-        for (WebViewTab *webView in [appDelegate.tabsViewController contentViews]) {
+        for (CustomWebView *webView in [appDelegate.tabsViewController contentViews]) {
             if ([webView isLoading] && [[[[webView url] host] stringByReplacingOccurrencesOfString:@"www." withString:@""] isEqualToString:[[[_request mainDocumentURL] host] stringByReplacingOccurrencesOfString:@"www." withString:@""]] && [[[webView url] pathComponents] isEqualToArray:[[_request mainDocumentURL] pathComponents]]) {
                 
                 [webView updateTLSStatus:TLSSTATUS_INSECURE];
@@ -424,13 +424,13 @@
         if ([[_request mainDocumentURL] isEqual:[_request URL]]) {
             // Main document changed, double-check secure content status
             if ([[[[_request mainDocumentURL] scheme] lowercaseString] isEqualToString:@"https"]) {
-                for (WebViewTab *webView in [appDelegate.tabsViewController contentViews]) {
+                for (CustomWebView *webView in [appDelegate.tabsViewController contentViews]) {
                     if ([webView isLoading] && [[[[webView url] host] stringByReplacingOccurrencesOfString:@"www." withString:@""] isEqualToString:[[[_request mainDocumentURL] host] stringByReplacingOccurrencesOfString:@"www." withString:@""]] && [[[webView url] pathComponents] isEqualToArray:[[_request mainDocumentURL] pathComponents]]) {
                         [webView updateTLSStatus:TLSSTATUS_SECURE];
                     }
                 }
             } else {
-                for (WebViewTab *webView in [appDelegate.tabsViewController contentViews]) {
+                for (CustomWebView *webView in [appDelegate.tabsViewController contentViews]) {
                     if ([webView isLoading] && [[[[webView url] host] stringByReplacingOccurrencesOfString:@"www." withString:@""] isEqualToString:[[[_request mainDocumentURL] host] stringByReplacingOccurrencesOfString:@"www." withString:@""]] && [[[webView url] pathComponents] isEqualToArray:[[_request mainDocumentURL] pathComponents]]) {
                         [webView updateTLSStatus:TLSSTATUS_INSECURE];
                     }
@@ -523,7 +523,7 @@
     _data = nil;
     
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    for (WebViewTab *webView in [appDelegate.tabsViewController contentViews]) {
+    for (CustomWebView *webView in [appDelegate.tabsViewController contentViews]) {
         if ([webView isLoading] && [[[[webView url] host] stringByReplacingOccurrencesOfString:@"www." withString:@""] isEqualToString:[[[_request mainDocumentURL] host] stringByReplacingOccurrencesOfString:@"www." withString:@""]] && [[[webView url] pathComponents] isEqualToArray:[[_request mainDocumentURL] pathComponents]]) {
             
             NSNumber *doneCount = [NSNumber numberWithInt:[[[webView progressDictionary] objectForKey:@"doneCount"] intValue] + 1];
@@ -537,7 +537,7 @@
     _data = nil;
     
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    for (WebViewTab *webView in [appDelegate.tabsViewController contentViews]) {
+    for (CustomWebView *webView in [appDelegate.tabsViewController contentViews]) {
         if ([webView isLoading] && [[[[webView url] host] stringByReplacingOccurrencesOfString:@"www." withString:@""] isEqualToString:[[[_request mainDocumentURL] host] stringByReplacingOccurrencesOfString:@"www." withString:@""]] && [[[webView url] pathComponents] isEqualToArray:[[_request mainDocumentURL] pathComponents]]) {
             
             NSNumber *doneCount = [NSNumber numberWithInt:[[[webView progressDictionary] objectForKey:@"doneCount"] intValue] + 1];

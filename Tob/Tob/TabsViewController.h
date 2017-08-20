@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "MOTabViewController.h"
+#import "MTPageViewController.h"
+#import "CustomWebView.h"
 
 #define TLSSTATUS_HIDDEN 0
 #define TLSSTATUS_SECURE 1
@@ -15,19 +16,18 @@
 
 extern const char AlertViewExternProtoUrl;
 extern const char AlertViewIncomingUrl;
+@class CustomWebView;
 
-@interface TabsViewController : MOTabViewController
+@interface TabsViewController : MTPageViewController <UITextFieldDelegate, UIActionSheetDelegate>
 
 @property (nonatomic, strong) UIProgressView *progressView;
 @property (nonatomic, strong) NSString *IPAddress;
 @property (nonatomic) int newIdentityNumber; // An integer containing the current identity number, to avoid showing the wrong IP
 
 
-- (NSMutableArray *)titles;
-- (NSMutableArray *)subtitles;
 - (NSMutableArray *)tlsStatuses;
 - (NSMutableArray *)progressValues;
-- (NSMutableArray *)contentViews;
+- (NSMutableArray<CustomWebView *> *)contentViews;
 
 - (void)loadURL:(NSURL *)url;
 - (void)askToLoadURL:(NSURL *)url;
@@ -37,13 +37,9 @@ extern const char AlertViewIncomingUrl;
 - (void)setTabsNeedForceRefresh:(BOOL)needsForceRefresh;
 
 - (void)updateNavigationItems;
-- (void)showNavigationBarAtFullHeight;
 - (void)updateProgress:(float)progress animated:(BOOL)animated;
 - (void)hideProgressBarAnimated:(BOOL)animated;
 - (void)showProgressBarAnimated:(BOOL)animated;
-
-- (void)webViewDidStartLoading;
-- (void)webViewDidFinishLoading;
 
 - (void)renderTorStatus:(NSString *)statusLine;
 - (void)showTLSStatus;

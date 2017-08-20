@@ -7,8 +7,6 @@
 //
 
 #import "TabsViewController.h"
-#import "WebViewTab.h"
-#import "CustomTextField.h"
 #import "AppDelegate.h"
 #import "BookmarkTableViewController.h"
 #import "SettingsTableViewController.h"
@@ -18,18 +16,8 @@
 #import "iRate.h"
 #import "LogViewController.h"
 #import "MBProgressHUD.h"
+#import "WebTextField.h"
 #import <objc/runtime.h>
-
-#define UNIBAR_DEFAULT_X 12
-#define UNIBAR_DEFAULT_Y [[UIApplication sharedApplication] statusBarFrame].size.height == 0 ? 10 : [[UIApplication sharedApplication] statusBarFrame].size.height + 5
-#define UNIBAR_DEFAULT_WIDTH [[UIScreen mainScreen] bounds].size.width - 20
-#define UNIBAR_DEFAULT_WIDTH_WITH(ORIENTATION) [[UIScreen mainScreen] bounds].size.width - 20
-#define UNIBAR_DEFAULT_HEIGHT 29
-
-#define UNIBAR_FINISHED_X 11.5
-#define UNIBAR_FINISHED_Y [[UIApplication sharedApplication] statusBarFrame].size.height == 0 ? 0 : [[UIApplication sharedApplication] statusBarFrame].size.height - 5
-#define UNIBAR_FINISHED_WIDTH [[UIScreen mainScreen] bounds].size.width - 20
-#define UNIBAR_FINISHED_HEIGHT 25
 
 #define kNavigationBarAnimationTime 0.2
 
@@ -53,12 +41,6 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 
 
 @implementation TabsViewController {
-    // Array of titles that are presented at the top of each tab's container view
-    NSMutableArray *_titles;
-    
-    // Array of subtitles that are presented on top of the views
-    NSMutableArray *_subtitles;
-    
     // Array of the TLSS Statuses for the webviews
     NSMutableArray *_tlsStatuses;
     
@@ -68,21 +50,12 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     // Array of the progress for each web view
     NSMutableArray *_progressValues;
     
-    // Scrolling
-    BOOL _userScrolling;
-    BOOL _toolbarUpInMiddleOfPageNowScrollingDown;
-    CGPoint _previousScrollOffset;
-    CGPoint _initialScrollOffset;
-    BOOL _skipScrolling;
-    
     // Web
     UIWebView *_webViewObject;
     UIProgressView *_progressView;
     
     // Nav bar
-    CustomTextField *_addressTextField;
-    BOOL _addressTextFieldEditing;
-    UIButton *_cancelButton;
+    WebTextField *_addressTextField;
     
     // Selected toolbar
     UIBarButtonItem *_backBarButtonItem;
@@ -92,7 +65,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     UIBarButtonItem *_tabsBarButtonItem;
     
     // Deselected toolbar
-    UIBarButtonItem *_deselectedSettingsBarButtonItem;
+    UIBarButtonItem *_clearAllBarButtonItem;
     
     // Tor progress view
     UIProgressView *_torProgressView;
@@ -124,98 +97,38 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 }
 
 - (void)initUI {
-    // Initialize the tab view
-    self.tabView.addingStyle = MOTabViewAddingAtLastIndex;
-    self.tabView.navigationBarHidden = NO;
-    self.maxNumberOfViews = 99;
+    [self.scrollView setScrollsToTop:NO];
     
-    // Remove the title label
-    UITextField *titleField = nil;
-    [self.tabView setTitleField:titleField];
-    
-    // Add a custom cancel button to the navigation bar
-    _cancelButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    _cancelButton.frame = CGRectMake(SCREEN_WIDTH - 60, UNIBAR_DEFAULT_Y, 55, UNIBAR_DEFAULT_HEIGHT);
-    [_cancelButton addTarget:self action:@selector(cancelEdition) forControlEvents:UIControlEventTouchUpInside];
-    [_cancelButton setTitle:NSLocalizedString(@"Cancel", nil) forState:UIControlStateNormal];
-    _cancelButton.alpha = 0.0;
-    [self.tabView.navigationBar addSubview:_cancelButton];
-    
-    // Use a custom title field for the navigation bar
-    _addressTextField = [[CustomTextField alloc] initWithFrame:CGRectMake(UNIBAR_DEFAULT_X, UNIBAR_DEFAULT_Y, UNIBAR_DEFAULT_WIDTH_WITH(currentOrientation), UNIBAR_DEFAULT_HEIGHT)];
-    _addressTextField.delegate = self;
-    _addressTextField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-    _addressTextField.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    _addressTextField.autocapitalizationType = UITextAutocapitalizationTypeNone;
-    _addressTextField.autocorrectionType = UITextAutocorrectionTypeNo;
-    _addressTextField.returnKeyType = UIReturnKeyGo;
-    _addressTextField.adjustsFontSizeToFitWidth = YES;
-    _addressTextField.keyboardType = UIKeyboardTypeWebSearch;
-    _addressTextField.placeholder = NSLocalizedString(@"Search or enter an address", nil);
-    _addressTextField.rightViewMode = UITextFieldViewModeUnlessEditing;
-    _addressTextField.delegate = self;
-    [self.tabView setNavigationBarField:_addressTextField];
-    
-    [_addressTextField.cancelButton addTarget:self action:@selector(stopTapped:) forControlEvents:UIControlEventTouchUpInside];
+    _addressTextField = [[WebTextField alloc] init];
+    [_addressTextField.stopButton addTarget:self action:@selector(stopTapped:) forControlEvents:UIControlEventTouchUpInside];
     [_addressTextField.refreshButton addTarget:self action:@selector(refreshTapped:) forControlEvents:UIControlEventTouchUpInside];
     
-    self.tabView.editableTitles = YES;
+    [self.navBar setHidden:NO];
+    [self.navBar setTextField:_addressTextField];
+    [self.navBar hideCancelButtonAnimated:NO];
+    [_addressTextField setDelegate:self];
+    [_addressTextField setAutoresizingMask:UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleWidth];
     
     _progressView = [[UIProgressView alloc] init];
     [self.view addSubview:_progressView];
     
-    UIView *navBar = self.tabView.navigationBar;
-    
-    if (navBar) {
-        [[self view] addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[navBar]-[_progressView(2@20)]"
-                                                                            options:NSLayoutFormatDirectionLeadingToTrailing
-                                                                            metrics:nil
-                                                                              views:NSDictionaryOfVariableBindings(_progressView, navBar)]];
-        
-        [[self view] addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_progressView]|"
-                                                                            options:NSLayoutFormatDirectionLeadingToTrailing
-                                                                            metrics:nil
-                                                                              views:NSDictionaryOfVariableBindings(_progressView)]];
-    }
+    UINavigationBar *navBar = self.navBar;
+    [[self view] addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[navBar]-[_progressView(2@20)]" options:NSLayoutFormatDirectionLeadingToTrailing metrics:nil views:NSDictionaryOfVariableBindings(_progressView, navBar)]];
+    [[self view] addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_progressView]|" options:NSLayoutFormatDirectionLeadingToTrailing metrics:nil views:NSDictionaryOfVariableBindings(_progressView)]];
     
     [_progressView setTranslatesAutoresizingMaskIntoConstraints:NO];
     [_progressView setProgress:0.0f animated:NO];
     [self hideProgressBarAnimated:NO];
     
-    // Add a settings button to the deselected toolbar
+    // Add a "close all" button to the deselected toolbar
     NSMutableArray *items = [[NSMutableArray alloc] initWithArray:self.deselectedToolbar.items];
     UIBarButtonItem *flexibleSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
     
     [items insertObject:flexibleSpace atIndex:0];
-    [items insertObject:self.deselectedSettingsBarButtonItem atIndex:0];
+    [items insertObject:self.clearAllBarButtonItem atIndex:0];
     self.deselectedToolbar.items = items;
     
-    [self.selectedToolbar setFrame:CGRectMake(0, SCREEN_HEIGHT - 44, SCREEN_WIDTH, 44)];
-    _tabsBarButtonItem = self.selectedToolbar.items[1];
-    
-    // Select the restored/opened tab
-    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    
-    if ([appDelegate startUrl]) {
-        [UIView animateWithDuration:kRestoreAnimationDuration animations:^{
-            [self.tabView deselectCurrentViewAnimated:NO];
-            [self.tabView selectViewAtIndex:[self numberOfViewsInTabView:self.tabView] - 1 animated:NO];
-        } completion:^(BOOL finished){
-            [self.tabView selectCurrentViewAnimated:NO];
-        }];
-    } else if ([appDelegate restoredData] && [appDelegate restoredIndex] != self.tabView.currentIndex) {
-        [UIView animateWithDuration:kRestoreAnimationDuration animations:^{
-            [self.tabView deselectCurrentViewAnimated:NO];
-            [self.tabView selectViewAtIndex:[appDelegate restoredIndex] animated:NO];
-        } completion:^(BOOL finished){
-            if (self.tabView.currentIndex != 0)
-                ((WebViewTab *)[self.contentViews objectAtIndex:0]).frame = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-            [self.tabView selectCurrentViewAnimated:NO];
-            [self.view bringSubviewToFront:_torDarkBackgroundView];
-            [self.view bringSubviewToFront:_torLoadingView];
-        }];
-    }
+    _tabsBarButtonItem = [self.selectedToolbar.items objectAtIndex:1];
     
     // Add a loading view for Tor
     _torDarkBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
@@ -260,6 +173,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     [_torLoadTimeWarning setFont:[UIFont systemFontOfSize:11]];
     [_torLoadingView addSubview:_torLoadTimeWarning];
 
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     [appDelegate.logViewController logInfo:@"[Tor] 0% - Starting"];
     
     [self.view addSubview:_torLoadingView];
@@ -268,6 +182,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         [self prePopulateBookmarks];
     }
     
+    [self restoreData];
     [self updateTintColor];
     [self updateNavigationItems];
 }
@@ -277,33 +192,26 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     NSMutableDictionary *settings = appDelegate.getSettings;
     
     if (![[settings valueForKey:@"night-mode"] boolValue]) {
-        UIView *backgroundView = [[UIView alloc] init];
-        backgroundView.frame = self.tabView.frame;
-        backgroundView.backgroundColor = [UIColor groupTableViewBackgroundColor];
-        [self.tabView setBackgroundView:backgroundView];
-        
-        UILabel *subtitleLabel = [[UILabel alloc] init];
-        [subtitleLabel setTextAlignment:NSTextAlignmentCenter];
-        [subtitleLabel setTextColor:[UIColor blackColor]];
-        [self.tabView setSubtitleLabel:subtitleLabel];
-        
-        _cancelButton.tintColor = self.view.tintColor;
+        [self.view setBackgroundColor:[UIColor groupTableViewBackgroundColor]];
+        [self.scrollView setBackgroundColor:[UIColor groupTableViewBackgroundColor]];
+
+        self.navBar.cancelButton.tintColor = self.view.tintColor;
         
         _addressTextField.backgroundColor = [UIColor whiteColor];
         _addressTextField.textColor = [UIColor blackColor];
         _addressTextField.tintColor = self.view.tintColor;
         _addressTextField.tlsButton.tintColor = [UIColor grayColor];
-        _addressTextField.cancelButton.tintColor = [UIColor blackColor];
+        _addressTextField.stopButton.tintColor = [UIColor blackColor];
         _addressTextField.refreshButton.tintColor = [UIColor blackColor];
+        _addressTextField.layer.borderColor = [UIColor colorWithWhite:0.8 alpha:1.0].CGColor;
         
         // Use custom colors for the page control (to make it more visible)
-        self.tabView.pageControl.tintColor = [UIColor darkGrayColor];
-        self.tabView.pageControl.pageIndicatorTintColor = [UIColor colorWithRed:0.8 green:0.8 blue:0.8 alpha:1.0];
-        self.tabView.pageControl.currentPageIndicatorTintColor = [UIColor grayColor];
+        self.pageControl.tintColor = [UIColor darkGrayColor];
+        self.pageControl.pageIndicatorTintColor = [UIColor colorWithRed:0.8 green:0.8 blue:0.8 alpha:1.0];
+        self.pageControl.currentPageIndicatorTintColor = [UIColor grayColor];
         
         // Use a custom appearence for the navigation bar
-        [self.tabView.navigationBar setBarTintColor:[UIColor groupTableViewBackgroundColor]];
-        [self.tabView.navigationBar setTranslucent:NO];
+        [self.navBar setBarTintColor:[UIColor groupTableViewBackgroundColor]];
         
         _progressView.trackTintColor = [UIColor colorWithRed:0.90 green:0.90 blue:0.92 alpha:1.0];
         _progressView.progressTintColor = self.view.tintColor;
@@ -323,8 +231,9 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         _torProgressDescription.textColor = [UIColor blackColor];
         
         _tabsBarButtonItem.tintColor = self.view.tintColor;
-        self.numberOfViewsLabel.textColor = self.view.tintColor;
-        
+        self.numberOfTabsLabel.textColor = self.view.tintColor;
+        self.tabTitleLabel.textColor = [UIColor blackColor];
+
         [self.selectedToolbar setBarTintColor:[UIColor groupTableViewBackgroundColor]];
         [self.deselectedToolbar setBarTintColor:[UIColor groupTableViewBackgroundColor]];
         [self.selectedToolbar setTintColor:self.view.tintColor];
@@ -333,31 +242,24 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         
         [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
     } else {
-        UIView *backgroundView = [[UIView alloc] init];
-        backgroundView.frame = self.tabView.frame;
-        backgroundView.backgroundColor = [UIColor darkGrayColor];
-        [self.tabView setBackgroundView:backgroundView];
+        [self.view setBackgroundColor:[UIColor grayColor]];
+        [self.scrollView setBackgroundColor:[UIColor grayColor]];
         
-        UILabel *subtitleLabel = [[UILabel alloc] init];
-        [subtitleLabel setTextAlignment:NSTextAlignmentCenter];
-        [subtitleLabel setTextColor:[UIColor whiteColor]];
-        [self.tabView setSubtitleLabel:subtitleLabel];
-        
-        _cancelButton.tintColor = [UIColor whiteColor];
+        self.navBar.cancelButton.tintColor = [UIColor whiteColor];
         
         _addressTextField.backgroundColor = [UIColor lightGrayColor];
         _addressTextField.textColor = [UIColor whiteColor];
         _addressTextField.tintColor = [UIColor whiteColor];
         _addressTextField.tlsButton.tintColor = [UIColor whiteColor];
-        _addressTextField.cancelButton.tintColor = [UIColor whiteColor];
+        _addressTextField.stopButton.tintColor = [UIColor whiteColor];
         _addressTextField.refreshButton.tintColor = [UIColor whiteColor];
+        _addressTextField.layer.borderColor = [UIColor colorWithWhite:0.75 alpha:1.0].CGColor;
+
+        self.pageControl.tintColor = [UIColor whiteColor];
+        self.pageControl.pageIndicatorTintColor = [UIColor colorWithRed:0.8 green:0.8 blue:0.8 alpha:1.0];
+        self.pageControl.currentPageIndicatorTintColor = [UIColor whiteColor];
         
-        self.tabView.pageControl.tintColor = [UIColor whiteColor];
-        self.tabView.pageControl.pageIndicatorTintColor = [UIColor colorWithRed:0.8 green:0.8 blue:0.8 alpha:1.0];
-        self.tabView.pageControl.currentPageIndicatorTintColor = [UIColor whiteColor];
-        
-        [self.tabView.navigationBar setBarTintColor:[UIColor darkGrayColor]];
-        [self.tabView.navigationBar setTranslucent:NO];
+        [self.navBar setBarTintColor:[UIColor darkGrayColor]];
         
         _progressView.trackTintColor = [UIColor lightGrayColor];
         _progressView.progressTintColor = [UIColor whiteColor];
@@ -377,8 +279,9 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         _torProgressDescription.textColor = [UIColor whiteColor];
         
         _tabsBarButtonItem.tintColor = [UIColor whiteColor];
-        self.numberOfViewsLabel.textColor = [UIColor whiteColor];
-        
+        self.numberOfTabsLabel.textColor = [UIColor whiteColor];
+        self.tabTitleLabel.textColor = [UIColor whiteColor];
+
         [self.selectedToolbar setBarTintColor:[UIColor darkGrayColor]];
         [self.deselectedToolbar setBarTintColor:[UIColor darkGrayColor]];
         [self.selectedToolbar setTintColor:[UIColor whiteColor]];
@@ -409,7 +312,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     [self setAutomaticallyAdjustsScrollViewInsets:YES];
     [self setExtendedLayoutIncludesOpaqueBars:YES];
     
-    if (self.tabView.isTabSelected) {
+    if (!self.tabsAreVisible) {
         [self.view bringSubviewToFront:self.selectedToolbar];
         [self.view bringSubviewToFront:_bookmarks.tableView];
         [self.view bringSubviewToFront:_torDarkBackgroundView];
@@ -426,25 +329,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 - (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
     [super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
     
-    // Update the toolbar's frame
-    [self.selectedToolbar setFrame:CGRectMake(0, size.height - 44, size.width, 44)];
-    [self.deselectedToolbar setFrame:CGRectMake(0, size.height - 44, size.width, 44)];
-    _userScrolling = NO;
-    
-    CGRect frame = self.tabView.frame;
-    frame.size = size;
-    
-    [self.tabView selectCurrentView];
-        
     [coordinator animateAlongsideTransition:^(id<UIViewControllerTransitionCoordinatorContext> context) {
-        // Update the frame for all the content views
-        for (WebViewTab *tab in self.contentViews) {
-            [tab setFrame:frame];
-        }
-        
-        [self.tabView setFrame:frame];
-        [self showNavigationBarAtFullHeight];
-        
         _torDarkBackgroundView.frame = CGRectMake(0, 0, size.width, size.height);
         _torLoadingView.center = CGPointMake(size.width / 2, size.height / 2);
         _torPanelView.center = CGPointMake(size.width / 2, size.height / 2);
@@ -452,44 +337,22 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         [self.view bringSubviewToFront:_torLoadingView];
         [self.view bringSubviewToFront:_torPanelView];
         
-        _cancelButton.frame = CGRectMake(size.width - 60, UNIBAR_DEFAULT_Y, 55, UNIBAR_DEFAULT_HEIGHT);
         _bookmarks.view.frame = CGRectMake(0, [[UIApplication sharedApplication] statusBarFrame].size.height + 44, size.width, size.height - ([[UIApplication sharedApplication] statusBarFrame].size.height + 44));
-        [self unibarStopEditing];
-    } completion: ^(id<UIViewControllerTransitionCoordinatorContext> context) {
-        int maxNavbarSize = 44 + [[UIApplication sharedApplication] statusBarFrame].size.height;
-        if (_webViewObject.scrollView.contentSize.height <= SCREEN_HEIGHT)
-            _webViewObject.frame =  CGRectMake(0, maxNavbarSize, SCREEN_WIDTH, SCREEN_HEIGHT - (44 + maxNavbarSize));
-        else
-            _webViewObject.frame =  CGRectMake(0, maxNavbarSize, SCREEN_WIDTH, SCREEN_HEIGHT - maxNavbarSize);
-        
-        _cancelButton.frame = CGRectMake(size.width - 60, UNIBAR_DEFAULT_Y, 55, UNIBAR_DEFAULT_HEIGHT);
-        CGRect textFieldFrame = _addressTextField.frame;
-        textFieldFrame.origin.y = UNIBAR_DEFAULT_Y;
-        _addressTextField.frame = textFieldFrame;
-        
-        [self.view bringSubviewToFront:_torDarkBackgroundView];
-        [self.view bringSubviewToFront:_torLoadingView];
-        [self.view bringSubviewToFront:_torPanelView];
-    }];
+    } completion:nil];
 }
 
 - (void)saveAppState {
-    NSMutableArray *tabsDataArray = [[NSMutableArray alloc] initWithCapacity:_subtitles.count - 1];
-    for (int i = 0; i < _subtitles.count; i++) {
-        if ([[[self.contentViews objectAtIndex:i] url] absoluteString] && [self.subtitles objectAtIndex:i]) {
-            [tabsDataArray addObject:@{@"url" : [[[self.contentViews objectAtIndex:i] url] absoluteString], @"title" : [self.subtitles objectAtIndex:i]}];
-        } else if ([[[self.contentViews objectAtIndex:i] url] absoluteString]) {
-            [tabsDataArray addObject:@{@"url" : [[[self.contentViews objectAtIndex:i] url] absoluteString], @"title" : @""}];
-        } else if ([_subtitles objectAtIndex:i]) {
-            [tabsDataArray addObject:@{@"url" : @"", @"title" : [self.subtitles objectAtIndex:i]}];
+    NSMutableArray *tabsDataArray = [[NSMutableArray alloc] initWithCapacity:self.tabsCount];
+    for (int i = 0; i < self.tabsCount; i++) {
+        if ([[[self.contentViews objectAtIndex:i] url] absoluteString]) {
+            [tabsDataArray addObject:@{@"url" : [[[self.contentViews objectAtIndex:i] url] absoluteString], @"title" : [[self tabAtIndex:i] title]}];
         }
-        
     }
     
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
     NSString *appFile = [documentsDirectory stringByAppendingPathComponent:@"state.bin"];
-    [NSKeyedArchiver archiveRootObject:@[[NSNumber numberWithInt:self.tabView.currentIndex], tabsDataArray] toFile:appFile];
+    [NSKeyedArchiver archiveRootObject:@[[NSNumber numberWithInt:self.currentIndex], tabsDataArray] toFile:appFile];
 }
 
 - (void)getRestorableData {
@@ -512,82 +375,58 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     }
 }
 
+- (void)restoreData {
+    [self getRestorableData];
+
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    if ([appDelegate restoredData] && [[appDelegate restoredData] count] > 0) {
+        for (int i = 0; i < [appDelegate restoredData].count; i++) {
+            NSDictionary *params = [appDelegate restoredData][i];
+            MTPageViewTab *restoredTab = [self addTabAnimated:NO];
+            
+            [restoredTab setTitle:[params objectForKey:@"title"]];
+            [[self.contentViews lastObject] setUrl:[NSURL URLWithString:[params objectForKey:@"url"]]];
+        }
+    }
+    
+    if ([appDelegate startUrl]) {
+        [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"[Browser] Started app with URL %@", [[appDelegate startUrl] absoluteString]]];
+        MTPageViewTab *newTab = [self addTabAnimated:NO];
+        [newTab setTitle:[[appDelegate startUrl] host]];
+        [[self.contentViews lastObject] setUrl:[appDelegate startUrl]];
+    }
+    
+    if (self.tabsCount == 0) {
+        [[self addTabAnimated:NO] setTitle:NSLocalizedString(@"New tab", nil)];
+    }
+    
+    // Select the restored/opened tab
+    if ([appDelegate startUrl]) {
+        [UIView animateWithDuration:kRestoreAnimationDuration animations:^{
+            [self scrollToIndex:[self tabsCount] - 1 animated:NO];
+        } completion:^(BOOL finished){
+            [self hideTabsAnimated:NO];
+        }];
+    } else if ([appDelegate restoredData] && [appDelegate restoredIndex] != self.currentIndex) {
+        [UIView animateWithDuration:kRestoreAnimationDuration animations:^{
+            [self scrollToIndex:[appDelegate restoredIndex] animated:NO];
+        } completion:^(BOOL finished){
+            if (self.currentIndex != 0)
+                ([self.contentViews objectAtIndex:0]).frame = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            
+            [self hideTabsAnimated:NO];
+            [self.view bringSubviewToFront:_torDarkBackgroundView];
+            [self.view bringSubviewToFront:_torLoadingView];
+        }];
+    }
+}
+
 
 #pragma mark - UIViewController Methods
-
-- (NSMutableArray *)subtitles {
-    if (!_subtitles) {
-        [self getRestorableData];
-        _subtitles = [[NSMutableArray alloc] init];
-        
-        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-        if ([appDelegate restoredData]) {
-            for (int i = 0; i < [appDelegate restoredData].count; i++) {
-                NSDictionary *params = [appDelegate restoredData][i];
-                [_subtitles addObject:[params objectForKey:@"title"]];
-            }
-        }
-        
-        if ([appDelegate startUrl]) {
-            [_subtitles addObject:[[appDelegate startUrl] host]];
-        }
-        
-        if (![_subtitles count]) {
-            _subtitles = @[NSLocalizedString(@"New tab", nil)].mutableCopy;
-        }
-    }
-    
-    return _subtitles;
-}
-
-- (NSMutableArray *)titles {
-    if (!_titles) {
-        _titles = [[NSMutableArray alloc] init];
-        
-        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-        
-        if ([appDelegate restoredData]) {
-            NSMutableString *logString = [@"[Browser] Restoring tabs:" mutableCopy];
-            
-            for (int i = 0; i < [appDelegate restoredData].count; i++) {
-                NSDictionary *params = [appDelegate restoredData][i];
-                [_titles addObject:[params objectForKey:@"url"]];
-                [logString appendString:[@"\n• " stringByAppendingString:[params objectForKey:@"url"]]];
-            }
-            
-            if (_titles.count > 0) {
-                [appDelegate.logViewController logInfo:logString];
-            }
-        }
-        
-        if ([appDelegate startUrl]) {
-            [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"[Browser] Started app with URL %@", [[appDelegate startUrl] absoluteString]]];
-            [_titles addObject:[[appDelegate startUrl] absoluteString]];
-        }
-        
-        int diff = (int)([self.subtitles count] - [_titles count]);
-        
-        if (diff > 0 && [_titles count] == 0) {
-            [_titles addObject:[appDelegate homepage]];
-        }
-        
-        diff--;
-        
-        for (int i = 0; i <= diff; i++) {
-            [_titles addObject:@""];
-        }
-    }
-    
-    return _titles;
-}
 
 - (NSMutableArray *)tlsStatuses {
     if (!_tlsStatuses) {
         _tlsStatuses = [[NSMutableArray alloc] init];
-        
-        for (int i = 0; i < [[self subtitles] count]; i++) {
-            [_tlsStatuses addObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
-        }
     }
     
     return _tlsStatuses;
@@ -596,13 +435,6 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 - (NSMutableArray *)contentViews {
     if (!_contentViews) {
         _contentViews = [[NSMutableArray alloc] init];
-        
-        for (int i = 0; i < [[self subtitles] count]; i++) {
-            WebViewTab *contentView = [[WebViewTab alloc] initWithFrame:self.tabView.bounds];
-            [contentView setIndex:i];
-            [contentView setParent:self];
-            [_contentViews addObject:contentView];
-        }
     }
     return _contentViews;
 }
@@ -610,10 +442,6 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 - (NSMutableArray *)progressValues {
     if (!_progressValues) {
         _progressValues = [[NSMutableArray alloc] init];
-        
-        for (int i = 0; i < [[self subtitles] count]; i++) {
-            [_progressValues addObject:[NSNumber numberWithFloat:0.0f]];
-        }
     }
     
     return _progressValues;
@@ -660,26 +488,23 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     return _onionBarButtonItem;
 }
 
-- (UIBarButtonItem *)deselectedSettingsBarButtonItem {
-    if (!_deselectedSettingsBarButtonItem) {
-        _deselectedSettingsBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[[UIImage imageNamed:@"Settings"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]
-                                                                            style:UIBarButtonItemStylePlain
-                                                                           target:self
-                                                                           action:@selector(settingsTapped:)];
+- (UIBarButtonItem *)clearAllBarButtonItem {
+    if (!_clearAllBarButtonItem) {
+        _clearAllBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash target:self action:@selector(clearAllTapped:)];
     }
-    return _deselectedSettingsBarButtonItem;
+    return _clearAllBarButtonItem;
 }
 
 - (void)updateNavigationItems {
-    if (![_addressTextField isEditing])
-        _addressTextField.text = [_titles objectAtIndex:self.tabView.currentIndex];
+    if (![_addressTextField isEditing] && [self.tabContainers count] > self.currentIndex)
+        _addressTextField.text = [[(CustomWebView *)[self.contentViews objectAtIndex:self.currentIndex] url] absoluteString];
     
     self.backBarButtonItem.enabled = _webViewObject.canGoBack;
     self.forwardBarButtonItem.enabled = _webViewObject.canGoForward;
     
-    UIButton *refreshStopButton = _webViewObject.isLoading ? _addressTextField.cancelButton : _addressTextField.refreshButton;
-    refreshStopButton.hidden = _addressTextField.isEditing;
-        
+    UIButton *refreshStopButton = _webViewObject.isLoading ? _addressTextField.stopButton : _addressTextField.refreshButton;
+    refreshStopButton.alpha = _addressTextField.text.length > 0;
+    
     _addressTextField.rightView = refreshStopButton;
 
     UIBarButtonItem *fixedSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
@@ -688,6 +513,8 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     NSArray *items = [NSArray arrayWithObjects:fixedSpace, self.backBarButtonItem, flexibleSpace, self.forwardBarButtonItem, flexibleSpace, self.settingsBarButtonItem, flexibleSpace, self.onionBarButtonItem, flexibleSpace, _tabsBarButtonItem, fixedSpace, nil];
     
     self.selectedToolbar.items = items;
+    
+    [self updateDisplayedTitle];
 }
 
 - (void)updateProgress:(float)progress animated:(BOOL)animated {
@@ -879,26 +706,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     return nil;
 }
 
-- (void)webViewDidFinishLoading {
-    if (_webViewObject.scrollView.contentSize.height <= SCREEN_HEIGHT)
-        _webViewObject.frame =  CGRectMake(0, self.tabView.navigationBar.frame.size.height, SCREEN_WIDTH, SCREEN_HEIGHT - (44 + self.tabView.navigationBar.frame.size.height));
-    else
-        _webViewObject.frame =  CGRectMake(0, self.tabView.navigationBar.frame.size.height, SCREEN_WIDTH, SCREEN_HEIGHT - self.tabView.navigationBar.frame.size.height);
-}
-
-- (void)webViewDidStartLoading {
-    int maxNavbarSize = 44 + [[UIApplication sharedApplication] statusBarFrame].size.height;
-    
-    [UIView animateWithDuration:0.2 animations:^{
-        [self showNavigationBarAtFullHeight];
-        self.selectedToolbar.frame = CGRectMake(0, SCREEN_HEIGHT - 44, SCREEN_WIDTH, 44);
-        _webViewObject.frame = CGRectMake(0, maxNavbarSize, SCREEN_WIDTH, SCREEN_HEIGHT - maxNavbarSize);
-    }];
-}
-
-- (void)loadURL:(NSURL *)url {
-    [self unibarStopEditing];
-    
+- (void)loadURL:(NSURL *)url {    
     NSString *urlProto = [[url scheme] lowercaseString];
     if ([urlProto isEqualToString:@"tob"]||[urlProto isEqualToString:@"tobs"]||[urlProto isEqualToString:@"http"]||[urlProto isEqualToString:@"https"]) {
         /***** One of our supported protocols *****/
@@ -913,15 +721,13 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         [_webViewObject loadRequest:req];
         
         if ([urlProto isEqualToString:@"https"]) {
-            [self.tlsStatuses replaceObjectAtIndex:self.tabView.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_SECURE]];
-            [self showTLSStatus];
+            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_SECURE]];
         } else if (urlProto && ![urlProto isEqualToString:@""]) {
-            [self.tlsStatuses replaceObjectAtIndex:self.tabView.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_INSECURE]];
-            [self showTLSStatus];
+            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_INSECURE]];
         } else {
-            [self.tlsStatuses replaceObjectAtIndex:self.tabView.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
-            [self showTLSStatus];
+            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
         }
+        [self showTLSStatus];
     } else {
         /***** NOT a protocol that this app speaks, check with the OS if the user wants to *****/
         if ([[UIApplication sharedApplication] canOpenURL:url]) {
@@ -967,9 +773,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 
 - (void)addNewTabForURL:(NSURL *)url {
     [UIView animateWithDuration:(0.4) animations:^{
-        [self.tabView deselectCurrentViewAnimated:NO];
-        [self.tabView insertNewView];
-        [self showNavigationBarAtFullHeight];
+        [self addTabWithTitle:url.absoluteString];
         self.selectedToolbar.frame = CGRectMake(0, SCREEN_HEIGHT - 44, SCREEN_WIDTH, 44);
     } completion:^(BOOL finished) {
         if (!finished)
@@ -977,24 +781,22 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         
         NSString *urlProto = [[url scheme] lowercaseString];
         if ([urlProto isEqualToString:@"https"]) {
-            [self.tlsStatuses replaceObjectAtIndex:[self numberOfViewsInTabView:self.tabView] - 1 withObject:[NSNumber numberWithInt:TLSSTATUS_SECURE]];
-            [self showTLSStatus];
+            [self.tlsStatuses replaceObjectAtIndex:self.tabsCount - 1 withObject:[NSNumber numberWithInt:TLSSTATUS_SECURE]];
         } else if (urlProto && ![urlProto isEqualToString:@""]) {
-            [self.tlsStatuses replaceObjectAtIndex:[self numberOfViewsInTabView:self.tabView] - 1 withObject:[NSNumber numberWithInt:TLSSTATUS_INSECURE]];
-            [self showTLSStatus];
+            [self.tlsStatuses replaceObjectAtIndex:self.tabsCount - 1 withObject:[NSNumber numberWithInt:TLSSTATUS_INSECURE]];
         } else {
-            [self.tlsStatuses replaceObjectAtIndex:[self numberOfViewsInTabView:self.tabView] - 1 withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
-            [self showTLSStatus];
+            [self.tlsStatuses replaceObjectAtIndex:self.tabsCount - 1 withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
         }
-        
+        [self showTLSStatus];
+
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
-        [[self.contentViews objectAtIndex:[self numberOfViewsInTabView:self.tabView] - 1] loadRequest:request];
+        [[self.contentViews objectAtIndex:self.tabsCount - 1] loadRequest:request];
         [self.view bringSubviewToFront:self.selectedToolbar];
     }];
 }
 
 - (void)stopLoading {
-    for (WebViewTab *tab in self.contentViews) {
+    for (CustomWebView *tab in self.contentViews) {
         [tab stopLoading];
     }
 }
@@ -1006,13 +808,13 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 - (void)refreshCurrentTab {
     if (_webViewObject) {
         [_webViewObject reload];
-        [[[self contentViews] objectAtIndex:self.tabView.currentIndex] setNeedsForceRefresh:NO];
+        [[[self contentViews] objectAtIndex:self.currentIndex] setNeedsForceRefresh:NO];
     }
 }
 
 - (void)setTabsNeedForceRefresh:(BOOL)needsForceRefresh {
-    for (int i = 0; i < [[self subtitles] count]; i++) {
-        [(WebViewTab *)[[self contentViews] objectAtIndex:i] setNeedsForceRefresh:needsForceRefresh];
+    for (int i = 0; i < self.tabsCount; i++) {
+        [[[self contentViews] objectAtIndex:i] setNeedsForceRefresh:needsForceRefresh];
     }
 }
 
@@ -1022,30 +824,28 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     _torLoadingView = nil;
     _torDarkBackgroundView = nil;
     
-    // Don't load the tabs in the background
-    for (int i = 0; i < [[self subtitles] count]; i++) {
-        [[[self contentViews] objectAtIndex:i] setNeedsForceRefresh:YES];
-        [[[self contentViews] objectAtIndex:i] setUrl:[NSURL URLWithString:[self.titles objectAtIndex:i]]];
-    }
+    [self setTabsNeedForceRefresh:YES];
     
     // Load the current tab
-    NSURL *url = [NSURL URLWithString:[[self titles] objectAtIndex:self.tabView.currentIndex]];
+    NSURL *url = [[self.contentViews objectAtIndex:self.currentIndex] url];
     NSURLRequest *request = [NSURLRequest requestWithURL:url];
-    [[[self contentViews] objectAtIndex:self.tabView.currentIndex] setNeedsForceRefresh:NO];
+    [[[self contentViews] objectAtIndex:self.currentIndex] setNeedsForceRefresh:NO];
     
     NSString *urlProto = [[url scheme] lowercaseString];
     if ([urlProto isEqualToString:@"https"]) {
-        [self.tlsStatuses replaceObjectAtIndex:self.tabView.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_SECURE]];
-        [self showTLSStatus];
+        [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_SECURE]];
     } else if (urlProto && ![urlProto isEqualToString:@""]){
-        [self.tlsStatuses replaceObjectAtIndex:self.tabView.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_INSECURE]];
-        [self showTLSStatus];
+        [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_INSECURE]];
     } else {
-        [self.tlsStatuses replaceObjectAtIndex:self.tabView.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
-        [self showTLSStatus];
+        [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
     }
+    [self showTLSStatus];
+
+    [[[self contentViews] objectAtIndex:self.currentIndex] loadRequest:request];
     
-    [[[self contentViews] objectAtIndex:self.tabView.currentIndex] loadRequest:request];
+    if ([[_addressTextField text] isEqualToString:@""] && ![_webViewObject isLoading]) {
+        [_addressTextField becomeFirstResponder];
+    }
     
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     appDelegate.restoredIndex = 0;
@@ -1190,19 +990,15 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 }
 
 - (void)showTLSStatus {
-    if ([self.tlsStatuses objectAtIndex:self.tabView.currentIndex] == [NSNumber numberWithInt:TLSSTATUS_HIDDEN] || [_addressTextField isFirstResponder]) {
+    if ([self.tlsStatuses objectAtIndex:self.currentIndex] == [NSNumber numberWithInt:TLSSTATUS_HIDDEN]) {
         [_addressTextField setLeftViewMode:UITextFieldViewModeNever];
-    } else if ([self.tlsStatuses objectAtIndex:self.tabView.currentIndex] == [NSNumber numberWithInt:TLSSTATUS_SECURE]) {
-        [_addressTextField setLeftViewMode:UITextFieldViewModeAlways];
+    } else if ([self.tlsStatuses objectAtIndex:self.currentIndex] == [NSNumber numberWithInt:TLSSTATUS_SECURE]) {
+        [_addressTextField setLeftViewMode:UITextFieldViewModeUnlessEditing];
         [_addressTextField.tlsButton setImage:[[UIImage imageNamed:@"Lock"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     } else {
-        [_addressTextField setLeftViewMode:UITextFieldViewModeAlways];
+        [_addressTextField setLeftViewMode:UITextFieldViewModeUnlessEditing];
         [_addressTextField.tlsButton setImage:[[UIImage imageNamed:@"BrokenLock"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     }
-}
-
-- (void)hideTLSStatus {
-    [_addressTextField setLeftViewMode:UITextFieldViewModeNever];
 }
 
 - (void)getIPAddress {
@@ -1276,6 +1072,12 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     [self displayTorPanel];
 }
 
+- (void)clearAllTapped:(UIBarButtonItem *)sender {
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:NSLocalizedString(@"Cancel", nil) destructiveButtonTitle:NSLocalizedString(@"Close all tabs", nil) otherButtonTitles:nil];
+    
+    [actionSheet showInView:self.view];
+}
+
 - (void)newIdentity {
     _newIdentityNumber ++;
     _IPAddress = nil;
@@ -1304,7 +1106,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
             [appDelegate wipeAppData];
 
             for (int i = 0; i < [[self contentViews] count]; i++) {
-                if (i != self.tabView.currentIndex)
+                if (i != self.currentIndex)
                     [[[self contentViews] objectAtIndex:i] setNeedsForceRefresh:YES];
                 else
                     [[[self contentViews] objectAtIndex:i] reload];
@@ -1331,53 +1133,13 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 }
 
 
-#pragma mark - Gesture recognizer
+#pragma mark - Action sheet delegate
 
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
-    return YES;
-}
-
-- (void)singleTapGestureCaptured:(UITapGestureRecognizer *)gesture {
-    CGPoint touchPoint = [gesture locationInView:_webViewObject];
-    int screenWidth = [[UIScreen mainScreen] bounds].size.width;
-    if (CGRectContainsPoint(CGRectMake(0, _webViewObject.frame.size.height - 44, screenWidth, 44), touchPoint)) {
-        [UIView animateWithDuration:kNavigationBarAnimationTime animations:^{
-            [self showNavigationBarAtFullHeight];
-        }];
-    }
-}
-
-
-#pragma mark - uniBar
-
-- (void)cancelEdition {
-    _addressTextField.selectedTextRange = nil;
-    [self unibarStopEditing];
-}
-
-- (void)updateUnibar {
-    _addressTextField.placeholder = [NSString stringWithFormat:NSLocalizedString(@"Search or enter an address", nil)];
-}
-
-- (void)unibarStopEditing {
-    if ([_addressTextField isFirstResponder]) {
-        [_addressTextField resignFirstResponder];
-        
-        [_bookmarks.tableView removeFromSuperview];
-        _addressTextField.textAlignment = NSTextAlignmentCenter;
-        _addressTextField.clearButtonMode = UITextFieldViewModeNever;
-        
-        [UIView animateWithDuration:kNavigationBarAnimationTime animations:^{
-            [self showNavigationBarAtFullHeight];
-            self.selectedToolbar.frame = CGRectMake(0, SCREEN_HEIGHT - 44, SCREEN_WIDTH, 44);
-            _cancelButton.alpha = 0.0;
-            
-            [self showTLSStatus];
-        } completion:^(BOOL finished) {
-            _addressTextField.refreshButton.hidden = NO;
-            _addressTextField.rightViewMode = UITextFieldViewModeAlways;
-            _addressTextFieldEditing = YES;
-        }];
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == actionSheet.cancelButtonIndex)
+        return;
+    else if (buttonIndex == actionSheet.destructiveButtonIndex) {
+        [self closeAllTabs];
     }
 }
 
@@ -1411,27 +1173,9 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 
 #pragma mark - UITextFieldDelegate
 
-- (BOOL)textFieldShouldBeginEditing:(UITextField *)textField {
-    if (textField.frame.size.height == UNIBAR_FINISHED_HEIGHT) {
-        [UIView animateWithDuration:kNavigationBarAnimationTime animations:^{
-            [self showNavigationBarAtFullHeight];
-            self.selectedToolbar.frame = CGRectMake(0, SCREEN_HEIGHT - 44, SCREEN_WIDTH, 44);
-        }];
-        
-        return NO;
-    }
-    
-    [self hideTLSStatus];
-    return YES;
-}
-
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
-    _addressTextFieldEditing = YES;
-    _addressTextField.refreshButton.hidden = YES;
-    _addressTextField.rightViewMode = UITextFieldViewModeNever;
+    [self.navBar showCancelButton];
     _addressTextField.textAlignment = NSTextAlignmentLeft;
-    
-    _addressTextField.clearButtonMode = UITextFieldViewModeAlways;
     
     // Get current selected range , this example assumes is an insertion point or empty selection
     UITextRange *selectedRange = [textField selectedTextRange];
@@ -1464,25 +1208,20 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     [_bookmarks setEmbedded:YES];
     
     [UIView animateWithDuration:kNavigationBarAnimationTime animations:^{
-        [self showNavigationBarAtFullHeight];
-        CGRect unibarFrame = _addressTextField.frame;
-        unibarFrame.size.width = unibarFrame.size.width - 60;
-        _addressTextField.frame = unibarFrame;
-        _cancelButton.alpha = 1.0;
         [self.view addSubview:_bookmarks.tableView];
     }];
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField {
-    [self unibarStopEditing];
-    [self showTLSStatus];
+    [textField resignFirstResponder];
     
+    // Search if necessary
     NSString *urlString = [self isURL:textField.text];
     if (urlString) {
         if ([urlString hasPrefix:@"https"])
-            [[self tlsStatuses] replaceObjectAtIndex:self.tabView.currentIndex withObject:[NSNumber numberWithInteger:TLSSTATUS_SECURE]];
+            [[self tlsStatuses] replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInteger:TLSSTATUS_SECURE]];
         else
-            [[self tlsStatuses] replaceObjectAtIndex:self.tabView.currentIndex withObject:[NSNumber numberWithInteger:TLSSTATUS_INSECURE]];
+            [[self tlsStatuses] replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInteger:TLSSTATUS_INSECURE]];
         
         NSURL *url = [NSURL URLWithString:urlString];
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
@@ -1506,423 +1245,188 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
             urlString = [[NSString stringWithFormat:[[searchEngineURLs objectForKey:searchEngine] objectForKey:@"search_no_js"], textField.text] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
         
         if ([urlString hasPrefix:@"https"])
-            [[self tlsStatuses] replaceObjectAtIndex:self.tabView.currentIndex withObject:[NSNumber numberWithInteger:TLSSTATUS_SECURE]];
+            [[self tlsStatuses] replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInteger:TLSSTATUS_SECURE]];
         else
-            [[self tlsStatuses] replaceObjectAtIndex:self.tabView.currentIndex withObject:[NSNumber numberWithInteger:TLSSTATUS_INSECURE]];
+            [[self tlsStatuses] replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInteger:TLSSTATUS_INSECURE]];
         
         NSURL *url = [NSURL URLWithString:urlString];
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
         [_webViewObject loadRequest:request];
     }
-    
     return YES;
 }
 
+- (void)textFieldDidEndEditing:(UITextField *)textField {
+    [self.navBar hideCancelButton];
+    
+    UIButton *refreshStopButton = _webViewObject.isLoading ? _addressTextField.stopButton : _addressTextField.refreshButton;
+    refreshStopButton.alpha = textField.text.length > 0;
+    
+    [UIView animateWithDuration:kNavigationBarAnimationTime animations:^{
+        [_bookmarks.tableView removeFromSuperview];
+    }];
+}
 
-#pragma mark - TabViewDataSource
 
-- (UIView *)tabView:(MOTabView *)tabView viewForIndex:(NSUInteger)index {
-    if (![self.contentViews objectAtIndex:index]) {
-        WebViewTab *contentView = [[WebViewTab alloc] initWithFrame:tabView.bounds];
-        [contentView setIndex:index];
-        [contentView setParent:self];
-        [self.contentViews replaceObjectAtIndex:index withObject:contentView];
-        [self.tlsStatuses replaceObjectAtIndex:index withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
-        return contentView;
-    } else {
-        [self.view bringSubviewToFront:[self.contentViews objectAtIndex:index]];
-        [[self.contentViews objectAtIndex:index] setIndex:index];
-        [[self.contentViews objectAtIndex:index] setParent:self];
-        return [self.contentViews objectAtIndex:index];
+#pragma mark - MTPageView methods
+
+- (BOOL)canAddTab {
+    return self.tabsCount < 99;
+}
+
+- (MTPageViewTab *)newTabAtIndex:(int)index withTitle:(NSString *)title {
+    // Override this to use a custom tab
+    MTPageViewTab *newTab = [super newTabAtIndex:index withTitle:title];
+    
+    if (!title) {
+        [newTab setTitle:NSLocalizedString(@"New tab", nil)];
     }
+
+    CustomWebView *webView = [[CustomWebView alloc] initWithFrame:self.view.bounds];
+    [webView setCenter:newTab.center];
+    [webView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
+    [webView setParent:self];
+    [webView.scrollView setScrollsToTop:NO];
+    [newTab addSubview:webView];
+    
+    MTScrollBarManager *scrollBarManager = [[MTScrollBarManager alloc] initWithNavBar:self.navBar andToolBar:self.selectedToolbar andScrollView:webView.scrollView];
+    [newTab setScrollBarManager:scrollBarManager];
+    
+    [self.contentViews insertObject:webView atIndex:index];
+    [self.tlsStatuses insertObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN] atIndex:index];
+    [self.progressValues insertObject:[NSNumber numberWithFloat:0.0f] atIndex:index];
+
+    return newTab;
 }
 
-- (NSUInteger)numberOfViewsInTabView:(MOTabView *)tabView {
-    return self.subtitles.count;
-}
 
-- (NSString *)titleForIndex:(NSUInteger)index {
-    return [self.titles objectAtIndex:index];
-}
+#pragma mark - MTPageView events
 
-- (NSString *)subtitleForIndex:(NSUInteger)index {
-    return [self.subtitles objectAtIndex:index];
-}
-
-
-#pragma mark - TabViewDelegate
-
-- (void)tabView:(MOTabView *)tabView willEditView:(MOTabViewEditingStyle)editingStyle atIndex:(NSUInteger)index {
-    [super tabView:tabView willEditView:editingStyle atIndex:index];
+- (void)didMoveTabAtIndex:(int)fromIndex toIndex:(int)toIndex {
+    CustomWebView *contentView = [self.contentViews objectAtIndex:fromIndex];
+    NSNumber *tlsStatus = [self.tlsStatuses objectAtIndex:fromIndex];
+    NSNumber *progressValue = [self.progressValues objectAtIndex:fromIndex];
     
-    if (editingStyle == MOTabViewEditingStyleDelete) {
-        [self.contentViews[index] stopLoading];
-        [self.titles removeObjectAtIndex:index];
-        [self.subtitles removeObjectAtIndex:index];
-        [self.contentViews removeObjectAtIndex:index];
-        [self.tlsStatuses removeObjectAtIndex:index];
-        [self.progressValues removeObjectAtIndex:index];
-    } else if (editingStyle == MOTabViewEditingStyleUserInsert) {
-        [self.titles insertObject:@"" atIndex:index];
-        [self.subtitles insertObject:NSLocalizedString(@"New tab", nil) atIndex:index];
-        WebViewTab *contentView = [[WebViewTab alloc] initWithFrame:tabView.bounds];
-        [contentView setIndex:index];
-        [contentView setParent:self];
-        [self.contentViews insertObject:contentView atIndex:index];
-        [self.tlsStatuses insertObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN] atIndex:index];
-        [self.progressValues insertObject:[NSNumber numberWithFloat:0.0f] atIndex:index];
-    }
-}
-
-- (void)tabView:(MOTabView *)tabView willSelectViewAtIndex:(NSUInteger)index {
-    [super tabView:tabView willSelectViewAtIndex:index];
+    [self.contentViews removeObjectAtIndex:fromIndex];
+    [self.tlsStatuses removeObjectAtIndex:fromIndex];
+    [self.progressValues removeObjectAtIndex:fromIndex];
     
-    if (index < [self.contentViews count]) {
-        _webViewObject = [self.contentViews objectAtIndex:index];
-        [UIView animateWithDuration:0.3
-                         animations:^{
-                             // Move the webView down so that it's not hidden by the navbar
-                             if (_webViewObject.scrollView.contentSize.height <= SCREEN_HEIGHT)
-                                 _webViewObject.frame =  CGRectMake(0, self.tabView.navigationBar.frame.size.height, SCREEN_WIDTH, SCREEN_HEIGHT - (44 + self.tabView.navigationBar.frame.size.height));
-                             else
-                                 _webViewObject.frame =  CGRectMake(0, self.tabView.navigationBar.frame.size.height, SCREEN_WIDTH, SCREEN_HEIGHT - self.tabView.navigationBar.frame.size.height);
-                             [[_webViewObject scrollView] setContentInset:UIEdgeInsetsMake(0, 0, 0, 0)];
-                         }
-                         completion:nil];
-    }
-}
-
-- (void)tabView:(MOTabView *)tabView didSelectViewAtIndex:(NSUInteger)index {
-    [super tabView:tabView didSelectViewAtIndex:index];
-    
-    _webViewObject = [self.contentViews objectAtIndex:index];
-    // Re-animate it case it hasn't been done on "willSelectViewAtIndex"
-    [UIView animateWithDuration:0.3
-                     animations:^{
-                         // Move the webView down so that it's not hidden by the navbar
-                         if (_webViewObject.scrollView.contentSize.height <= SCREEN_HEIGHT)
-                             _webViewObject.frame =  CGRectMake(0, self.tabView.navigationBar.frame.size.height, SCREEN_WIDTH, SCREEN_HEIGHT - (44 + self.tabView.navigationBar.frame.size.height));
-                         else
-                             _webViewObject.frame =  CGRectMake(0, self.tabView.navigationBar.frame.size.height, SCREEN_WIDTH, SCREEN_HEIGHT - self.tabView.navigationBar.frame.size.height);
-                         [[_webViewObject scrollView] setContentInset:UIEdgeInsetsMake(0, 0, 0, 0)];
-                     }
-                     completion:nil];
-    
-    _webViewObject.scrollView.delegate = self;
-    _webViewObject.delegate = (WebViewTab *)_webViewObject;
-    
-    [(UIScrollView *)[_webViewObject.subviews objectAtIndex:0] setScrollsToTop:YES];
-    [self.view bringSubviewToFront:self.selectedToolbar];
-    _progressView.hidden = NO;
-    [_progressView setProgress:[[_progressValues objectAtIndex:index] floatValue]];
-    
-    UIButton *refreshStopButton = _webViewObject.isLoading ? _addressTextField.cancelButton : _addressTextField.refreshButton;
-    _addressTextField.rightView = refreshStopButton;
-    
-    if ([self.progressValues objectAtIndex:index] == [NSNumber numberWithFloat:1.0f]) {
-        _progressView.alpha = 0.0f; // Done loading for this page, don't show the progress
+    int newIndex = toIndex;
+    if (fromIndex < toIndex) {
+        // Removed an object before toIndex, so actually insert at toIndex - 1
+        newIndex -= 1;
     }
     
-    if ([[self.titles objectAtIndex:index] isEqualToString:@""] && ![_webViewObject isLoading]) {
-        [_addressTextField becomeFirstResponder];
-        _progressView.alpha = 0.0f;
+    [self.contentViews insertObject:contentView atIndex:newIndex];
+    [self.tlsStatuses insertObject:tlsStatus atIndex:newIndex];
+    [self.progressValues insertObject:progressValue atIndex:newIndex];
+}
+
+- (void)didCloseTabAtIndex:(int)index {
+    [[self.contentViews objectAtIndex:index] stopLoading];
+    [self.contentViews removeObjectAtIndex:index];
+    [self.tlsStatuses removeObjectAtIndex:index];
+    [self.progressValues removeObjectAtIndex:index];
+}
+
+- (void)tabsWillBecomeVisible {
+    for (CustomWebView *webView in self.contentViews) {
+        [webView.scrollView setShowsVerticalScrollIndicator:NO];
+        [webView.scrollView setShowsHorizontalScrollIndicator:NO];
     }
     
-    if ([(WebViewTab *)_webViewObject needsForceRefresh]) {
-        NSURL *url = [NSURL URLWithString:[self.titles objectAtIndex:index]];
+    [_webViewObject.scrollView setScrollsToTop:NO];
+    _progressView.hidden = YES;
+}
+
+- (void)tabsWillBecomeHidden {
+    if ([self.contentViews count] > self.currentIndex) {
+        _webViewObject = [self.contentViews objectAtIndex:self.currentIndex];
+        NSURL *url = [(CustomWebView *)_webViewObject url];
         
         NSString *urlProto = [[url scheme] lowercaseString];
         if ([urlProto isEqualToString:@"https"]) {
-            [self.tlsStatuses replaceObjectAtIndex:index withObject:[NSNumber numberWithInt:TLSSTATUS_SECURE]];
+            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_SECURE]];
         } else if (urlProto && ![urlProto isEqualToString:@""]) {
-            [self.tlsStatuses replaceObjectAtIndex:index withObject:[NSNumber numberWithInt:TLSSTATUS_INSECURE]];
+            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_INSECURE]];
         } else {
-            [self.tlsStatuses replaceObjectAtIndex:index withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
+            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
+        }
+
+        [self.navBar.textField setText:[url absoluteString]];
+        [self showTLSStatus];
+        
+        UIButton *refreshStopButton = _webViewObject.isLoading ? _addressTextField.stopButton : _addressTextField.refreshButton;
+        refreshStopButton.alpha = _addressTextField.text.length > 0;
+    }
+}
+
+- (void)tabsDidBecomeHidden {
+    if (self.currentIndex >= [self.contentViews count]) {
+        return;
+    }
+    
+    [[[self.contentViews objectAtIndex:self.currentIndex] scrollView] setShowsVerticalScrollIndicator:YES];
+    [[[self.contentViews objectAtIndex:self.currentIndex] scrollView] setShowsHorizontalScrollIndicator:YES];
+    [[[self.contentViews objectAtIndex:self.currentIndex] scrollView] flashScrollIndicators];
+    
+    _webViewObject = [self.contentViews objectAtIndex:self.currentIndex];
+    _progressView.hidden = NO;
+    [_webViewObject.scrollView setScrollsToTop:YES];
+    [_progressView setProgress:[[_progressValues objectAtIndex:self.currentIndex] floatValue]];
+    [self.navBar.textField setText:[[(CustomWebView *)_webViewObject url] absoluteString]];
+    
+    UIButton *refreshStopButton = _webViewObject.isLoading ? _addressTextField.stopButton : _addressTextField.refreshButton;
+    _addressTextField.rightView = refreshStopButton;
+    
+    if ([self.progressValues objectAtIndex:self.currentIndex] == [NSNumber numberWithFloat:1.0f]) {
+        _progressView.alpha = 0.0f; // Done loading for this page, don't show the progress
+    }
+    
+    if ([[_addressTextField text] isEqualToString:@""] && ![_webViewObject isLoading]) {
+        if (!_torLoadingView) {
+            [_addressTextField becomeFirstResponder];
+        }
+        _progressView.alpha = 0.0f;
+    }
+    
+    if ([(CustomWebView *)_webViewObject needsForceRefresh]) {
+        NSURL *url = [(CustomWebView *)_webViewObject url];
+        
+        NSString *urlProto = [[url scheme] lowercaseString];
+        if ([urlProto isEqualToString:@"https"]) {
+            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_SECURE]];
+        } else if (urlProto && ![urlProto isEqualToString:@""]) {
+            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_INSECURE]];
+        } else {
+            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
         }
         
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
         [_webViewObject loadRequest:request];
-        [(WebViewTab *)_webViewObject setNeedsForceRefresh:NO];
-    }
-    
-    [self showTLSStatus];
-}
-
-- (void)tabView:(MOTabView *)tabView willDeselectViewAtIndex:(NSUInteger)index {
-    [super tabView:tabView willDeselectViewAtIndex:index];
-    
-    [self unibarStopEditing];
-    [(UIScrollView *)[_webViewObject.subviews objectAtIndex:0] setScrollsToTop:NO];
-    _webViewObject = nil;
-
-    [UIView animateWithDuration:0.2
-                     animations:^{
-                         // Move the webView down so that it's not hidden by the navbar
-                         ((WebViewTab *)[self.contentViews objectAtIndex:index]).frame = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-                     }
-                     completion:nil];
-    
-    _progressView.hidden = YES;
-}
-
-
-#pragma mark - Scrollview Delegate
-
-- (void)showNavigationBarAtFullHeight {
-    // Navigation
-    int maxNavbarSize = 44 + [[UIApplication sharedApplication] statusBarFrame].size.height;
-    self.tabView.navigationBar.frame = CGRectMake(0, 0, SCREEN_WIDTH, maxNavbarSize);
-    
-    // Address Bar
-    _addressTextField.frame = CGRectMake(UNIBAR_DEFAULT_X, UNIBAR_DEFAULT_Y, UNIBAR_DEFAULT_WIDTH, UNIBAR_DEFAULT_HEIGHT);
-    _addressTextField.font = [UIFont fontWithName:@"HelveticaNeue-Light" size:17];
-    ((UIView *)_addressTextField.subviews[0]).alpha = 1.0;
-    
-    _addressTextField.refreshButton.alpha = 1.0;
-    _addressTextField.refreshButton.frame = CGRectMake(_addressTextField.frame.size.width - 29, 0, 29, 29);
-    
-    _addressTextField.tlsButton.alpha = 1.0;
-}
-
-- (void)scrollViewDidScrollToTop:(UIScrollView *)scrollView {
-    int maxNavbarSize = 44 + [[UIApplication sharedApplication] statusBarFrame].size.height;
-    
-    [UIView animateWithDuration:0.2 animations:^{
-        [self showNavigationBarAtFullHeight];
-        self.selectedToolbar.frame = CGRectMake(0, SCREEN_HEIGHT - 44, SCREEN_WIDTH, 44);
-        _webViewObject.frame = CGRectMake(0, maxNavbarSize, SCREEN_WIDTH, SCREEN_HEIGHT - maxNavbarSize);
-    }];
-}
-
-- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-    _userScrolling = YES;
-    _initialScrollOffset = scrollView.contentOffset;
-    [self unibarStopEditing];
-}
-
--(void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if (!_userScrolling) return;
-    
-    int minNavbarSize = 20 + [[UIApplication sharedApplication] statusBarFrame].size.height;
-    int maxNavbarSize = 44 + [[UIApplication sharedApplication] statusBarFrame].size.height;
-    
-    if (scrollView.contentSize.height <= SCREEN_HEIGHT) {
-        // Page is less than/= to the screens height, no need to scroll anything.
-        _webViewObject.frame =  CGRectMake(0, maxNavbarSize, SCREEN_WIDTH, SCREEN_HEIGHT - (maxNavbarSize + 44));
-        [self showNavigationBarAtFullHeight];
-        self.selectedToolbar.frame = CGRectMake(0, SCREEN_HEIGHT - 44, SCREEN_WIDTH, 44);
-        
-        [[_webViewObject scrollView] setContentInset:UIEdgeInsetsMake(0, 0, 0, 0)];
-        [[_webViewObject scrollView] setScrollIndicatorInsets:UIEdgeInsetsMake(0, 0, 0, 0)];
-        return;
-    } else
-        [[_webViewObject scrollView] setContentInset:UIEdgeInsetsMake(0, 0, 44, 0)];
-    
-    if (scrollView.contentOffset.y <= 0) {
-        // Scrolling above the page
-        [self showNavigationBarAtFullHeight];
-        self.selectedToolbar.frame = CGRectMake(0, SCREEN_HEIGHT - 44, SCREEN_WIDTH, 44);
-        _webViewObject.frame = CGRectMake(0, maxNavbarSize, SCREEN_WIDTH, SCREEN_HEIGHT - maxNavbarSize);
-    }
-    
-    CGFloat contentOffset = scrollView.contentOffset.y - _initialScrollOffset.y;
-    if (scrollView.contentOffset.y <= 24) {
-        contentOffset = scrollView.contentOffset.y;
-    } else {
-        if (contentOffset < 0 && (scrollView.contentOffset.y - _previousScrollOffset.y) > 0) {
-            _initialScrollOffset = scrollView.contentOffset;
-        }
-    }
-    contentOffset = roundf(contentOffset);
-    if (contentOffset <= 24 && contentOffset >= 0) {
-        // Perform the animation if the offset of current position is less than/= to 24. but above 0
-        CGRect navFrame = self.tabView.navigationBar.frame;
-        if (scrollView.contentOffset.y < _previousScrollOffset.y) {
-            // Up
-            if (navFrame.size.height == maxNavbarSize) {
-                _skipScrolling = YES;
-            }
-        }
-        
-        if (navFrame.size.height == minNavbarSize && scrollView.contentOffset.y > 24) {
-            // If the height is minNavbarSize already, skip.
-            _skipScrolling = YES;
-        }
-        
-        if (_skipScrolling == NO) {
-            // If everything else passes and skip scrolling is NO, perform scrolling animation
-            navFrame.size.height = maxNavbarSize - contentOffset;
-            if (navFrame.size.height <= maxNavbarSize && navFrame.size.height >= minNavbarSize) {
-                self.tabView.navigationBar.frame = navFrame;
-                _webViewObject.frame = CGRectMake(0, maxNavbarSize - (maxNavbarSize - navFrame.size.height), SCREEN_WIDTH, SCREEN_HEIGHT - (maxNavbarSize - (maxNavbarSize - navFrame.size.height)));
-                
-                CGFloat XOffset = (contentOffset - 2) * 2;
-                if (XOffset < 0) {
-                    XOffset = 0;
-                }
-                CGFloat X = 12 + XOffset;
-                
-                CGFloat Y = UNIBAR_DEFAULT_Y - (contentOffset / 3.42857143);
-                
-                CGFloat widthOffset = (contentOffset - 2) * 4.04545455;
-                if (widthOffset < 0) {
-                    widthOffset = 0;
-                }
-                CGFloat width = UNIBAR_DEFAULT_WIDTH - widthOffset;
-                
-                // 29 to 20
-                CGFloat height = UNIBAR_DEFAULT_HEIGHT - (contentOffset / 2.66666667);
-                
-                _addressTextField.frame = CGRectMake(X, Y, width, height);
-                
-                // Font and alpha
-                CGFloat fontSize = (navFrame.size.height + (20 - [[UIApplication sharedApplication] statusBarFrame].size.height)) / 3.764; // We always want the initial size to be 64 / 3.764
-                if (fontSize < 11.0f) { // The minimum font size should be 11, otherwise it's unreadable
-                    fontSize = 11.0f;
-                }
-                _addressTextField.font = [UIFont fontWithName:@"HelveticaNeue-Light" size:fontSize];
-                ((UIView *)_addressTextField.subviews[0]).alpha = 1.0 - ((maxNavbarSize - navFrame.size.height) * (1.0 / 24));
-                _addressTextField.refreshButton.alpha = 1.0 - ((maxNavbarSize - navFrame.size.height) * (1.0 / 24));
-                _addressTextField.tlsButton.alpha = _addressTextField.refreshButton.alpha;
-            }
-        }
-    }
-    else if (contentOffset > 24) {
-        // Scrolled past the initial animation point. Small navigation bar
-        self.tabView.navigationBar.frame = CGRectMake(0, 0, SCREEN_WIDTH, minNavbarSize);
-        _addressTextField.frame = CGRectMake(UNIBAR_FINISHED_X, UNIBAR_FINISHED_Y, UNIBAR_FINISHED_WIDTH, UNIBAR_FINISHED_HEIGHT);
-        _addressTextField.font = [UIFont fontWithName:@"HelveticaNeue-Light" size:11];
-        ((UIView *)_addressTextField.subviews[0]).alpha = 0;
-        _addressTextField.refreshButton.alpha = 0.0;
-        _addressTextField.refreshButton.frame = CGRectMake(179, -5, 29, 29);
-        _addressTextField.tlsButton.alpha = 0.0;
-        _webViewObject.frame = CGRectMake(0, minNavbarSize, SCREEN_WIDTH, SCREEN_HEIGHT - minNavbarSize);
-    }
-    
-    if (scrollView.contentOffset.y <= 0) {
-        self.tabView.navigationBar.frame = CGRectMake(0, 0, SCREEN_WIDTH, maxNavbarSize);
-        _addressTextField.frame = CGRectMake(UNIBAR_DEFAULT_X, UNIBAR_DEFAULT_Y, UNIBAR_DEFAULT_WIDTH, UNIBAR_DEFAULT_HEIGHT);
-        _addressTextField.font = [UIFont fontWithName:@"HelveticaNeue-Light" size:17];
-        ((UIView *)_addressTextField.subviews[0]).alpha = 1;
-        _webViewObject.frame = CGRectMake(0, maxNavbarSize, SCREEN_WIDTH, SCREEN_HEIGHT - maxNavbarSize);
-    }
-    
-    // Toolbar
-    if (scrollView.contentOffset.y >= 0 && scrollView.contentOffset.y <= 44) {
-        if (scrollView.contentOffset.y < _previousScrollOffset.y && self.selectedToolbar.frame.origin.y == SCREEN_HEIGHT - 44) {
-            // Up
-            return;
-        }
-        _toolbarUpInMiddleOfPageNowScrollingDown = NO;
-        // Scrolling near the top
-        CGRect toolbarFrame = self.selectedToolbar.frame;
-        toolbarFrame.origin.y = (SCREEN_HEIGHT - 44) + scrollView.contentOffset.y;
-        self.selectedToolbar.frame = toolbarFrame;
-        
-        CGFloat bottomInset = 44 - scrollView.contentOffset.y;
-        if (bottomInset > 0 && bottomInset <= maxNavbarSize) {
-            //[[webViewObject scrollView] setScrollIndicatorInsets:UIEdgeInsetsMake(0, 0, bottomInset+((webViewObject.frame.origin.y+528)-SCREEN_HEIGHT), 0)];
-            [[_webViewObject scrollView] setScrollIndicatorInsets:UIEdgeInsetsMake(0, 0, bottomInset, 0)];
-        }
-    }
-    else if ((scrollView.contentOffset.y >= 45 && self.selectedToolbar.frame.origin.y == SCREEN_HEIGHT - 44) || _toolbarUpInMiddleOfPageNowScrollingDown) {
-        if (scrollView.contentOffset.y < _previousScrollOffset.y) {
-            // Up
-        }
-        else {
-            // Down
-            _toolbarUpInMiddleOfPageNowScrollingDown = YES;
-            CGRect toolbarFrame = self.selectedToolbar.frame;
-            toolbarFrame.origin.y = (SCREEN_HEIGHT - 44) + contentOffset;
-            self.selectedToolbar.frame = toolbarFrame;
-            if (toolbarFrame.origin.y == SCREEN_HEIGHT) {
-                _toolbarUpInMiddleOfPageNowScrollingDown = NO;
-            }
-            
-        }
-    }
-    else if (scrollView.contentOffset.y >= 45) {
-        if (scrollView.contentOffset.y >= _previousScrollOffset.y) {
-            // Down
-            self.selectedToolbar.frame = CGRectMake(0, SCREEN_HEIGHT, SCREEN_WIDTH, 44);
-            [[_webViewObject scrollView] setScrollIndicatorInsets:UIEdgeInsetsMake(0, 0, 0, 0)];
-        }
-    }
-    else if (scrollView.contentOffset.y < 0) {
-        [[_webViewObject scrollView] setScrollIndicatorInsets:UIEdgeInsetsMake(0, 0, 44, 0)];
-    }
-    
-    // Bottom of page
-    CGFloat fromBottomOffset = ((scrollView.contentOffset.y + _webViewObject.frame.size.height) - scrollView.contentSize.height);
-    if (scrollView.contentOffset.y + _webViewObject.frame.size.height >= scrollView.contentSize.height && fromBottomOffset <= 44) {
-        self.selectedToolbar.frame = CGRectMake(0, SCREEN_HEIGHT - fromBottomOffset, SCREEN_WIDTH, 44);
-        [[_webViewObject scrollView] setScrollIndicatorInsets:UIEdgeInsetsMake(0, 0, fromBottomOffset, 0)];
-    }
-    else if (fromBottomOffset > 44) {
-        self.selectedToolbar.frame = CGRectMake(0, SCREEN_HEIGHT - 44, SCREEN_WIDTH, 44);
-        [[_webViewObject scrollView] setScrollIndicatorInsets:UIEdgeInsetsMake(0, 0, 44, 0)];
-    }
-    
-    if (scrollView.contentOffset.y + scrollView.frame.size.height <= scrollView.contentSize.height) {
-        _previousScrollOffset = scrollView.contentOffset;
-    }
-    
-    _skipScrolling = NO;
-}
-
-- (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset {
-    int minNavbarSize = 20 + [[UIApplication sharedApplication] statusBarFrame].size.height;
-    int maxNavbarSize = 44 + [[UIApplication sharedApplication] statusBarFrame].size.height;
-    
-    if (velocity.y < -1.5) {
-        _userScrolling = NO;
-        if (self.tabView.navigationBar.frame.size.height == minNavbarSize) {
-            [UIView animateWithDuration:kNavigationBarAnimationTime animations:^{
-                [self showNavigationBarAtFullHeight];
-                self.selectedToolbar.frame = CGRectMake(0, SCREEN_HEIGHT - 44, SCREEN_WIDTH, 44);
-                _webViewObject.frame = CGRectMake(0, maxNavbarSize, SCREEN_WIDTH, SCREEN_HEIGHT - maxNavbarSize);
-            }];
-        }
-    } else {
-        if (self.tabView.navigationBar.frame.size.height < maxNavbarSize - 10 && self.selectedToolbar.frame.origin.y > SCREEN_HEIGHT - 44) {
-            // If self.selectedToolbar.frame.origin.y == SCREEN_HEIGHT - 44, we are at the bottom of the page so we shouldn't hide the toolbar
-            [UIView animateWithDuration:0.2 animations:^{
-                self.tabView.navigationBar.frame = CGRectMake(0, 0, SCREEN_WIDTH, minNavbarSize);
-                
-                _addressTextField.frame = CGRectMake(UNIBAR_FINISHED_X, UNIBAR_FINISHED_Y, UNIBAR_FINISHED_WIDTH, UNIBAR_FINISHED_HEIGHT);
-                _addressTextField.font = [UIFont fontWithName:@"HelveticaNeue-Light" size:11];
-                ((UIView *)_addressTextField.subviews[0]).alpha = 0;
-                _addressTextField.refreshButton.alpha = 0.0;
-                _addressTextField.refreshButton.frame = CGRectMake(179, -5, 29, 29);
-                _addressTextField.tlsButton.alpha = 0.0;
-                self.selectedToolbar.frame = CGRectMake(0, SCREEN_HEIGHT, SCREEN_WIDTH, 44);
-                _webViewObject.frame = CGRectMake(0, minNavbarSize, SCREEN_WIDTH, SCREEN_HEIGHT - minNavbarSize);
-                [[_webViewObject scrollView] setScrollIndicatorInsets:UIEdgeInsetsMake(0, 0, 0, 0)];
-            }];
-        } else if (self.tabView.navigationBar.frame.size.height < maxNavbarSize - 10) {
-            [UIView animateWithDuration:0.2 animations:^{
-                self.tabView.navigationBar.frame = CGRectMake(0, 0, SCREEN_WIDTH, minNavbarSize);
-                _addressTextField.frame = CGRectMake(UNIBAR_FINISHED_X, UNIBAR_FINISHED_Y, UNIBAR_FINISHED_WIDTH, UNIBAR_FINISHED_HEIGHT);
-                _addressTextField.font = [UIFont fontWithName:@"HelveticaNeue-Light" size:11];
-                ((UIView *)_addressTextField.subviews[0]).alpha = 0;
-                _addressTextField.refreshButton.alpha = 0.0;
-                _addressTextField.refreshButton.frame = CGRectMake(179, -5, 29, 29);
-                _addressTextField.tlsButton.alpha = 0.0;
-                _webViewObject.frame = CGRectMake(0, minNavbarSize, SCREEN_WIDTH, SCREEN_HEIGHT - minNavbarSize);
-            }];
-        } else  if (self.tabView.navigationBar.frame.size.height < maxNavbarSize) {
-            [UIView animateWithDuration:0.2 animations:^{
-                [self showNavigationBarAtFullHeight];
-                self.selectedToolbar.frame = CGRectMake(0, SCREEN_HEIGHT - 44, SCREEN_WIDTH, 44);
-                _webViewObject.frame = CGRectMake(0, maxNavbarSize, SCREEN_WIDTH, SCREEN_HEIGHT - maxNavbarSize);
-            }];
-        }
+        [(CustomWebView *)_webViewObject setNeedsForceRefresh:NO];
     }
 }
 
-- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
-    _userScrolling = NO;
-    _initialScrollOffset = CGPointMake(0, 0);
+- (void)didBeginSwitchingTabAtIndex:(int)index {
+    for (CustomWebView *webView in self.contentViews) {
+        [webView.scrollView.pinchGestureRecognizer setEnabled:NO];
+        [webView.scrollView.panGestureRecognizer setEnabled:NO];
+    }
+}
+
+- (void)didCancelSwitchingTabAtIndex:(int)index {
+    for (CustomWebView *webView in self.contentViews) {
+        [webView.scrollView.pinchGestureRecognizer setEnabled:YES];
+        [webView.scrollView.panGestureRecognizer setEnabled:YES];
+    }
+}
+
+- (void)didFinishSwitchingTabAtIndex:(int)fromIndex toIndex:(int)toIndex {
+    for (CustomWebView *webView in self.contentViews) {
+        [webView.scrollView.pinchGestureRecognizer setEnabled:YES];
+        [webView.scrollView.panGestureRecognizer setEnabled:YES];
+    }
 }
 
 @end

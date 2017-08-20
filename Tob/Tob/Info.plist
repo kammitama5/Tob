@@ -15,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.3</string>
+	<string>2.4</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -42,7 +42,7 @@
 		<true/>
 	</dict>
 	<key>NSAppleMusicUsageDescription</key>
-	<string>The library is used to save images when long-pressing one in a website and chossing "save"</string>
+	<string>The library is used to save images when long-pressing one in a website and chossing &quot;save&quot;</string>
 	<key>NSCameraUsageDescription</key>
 	<string>The camera is used to scan QRCodes in order to add bridges</string>
 	<key>NSPhotoLibraryUsageDescription</key>
