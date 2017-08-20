@@ -479,11 +479,10 @@
             if (firstChunk) {
                 // If this is the start of the content of this (gzipped) file, inject any
                 // script-overriding code as necessary.
-#warning data not used?
                 if (incomingContentType == PROXY_CONTENT_HTML) {
-                    data = [self htmlDataWithJavascriptInjection:data];
+                    newData = [self htmlDataWithJavascriptInjection:data];
                 } else if (incomingContentType == PROXY_CONTENT_JS) {
-                    data = [self javascriptDataWithJavascriptInjection:data];
+                    newData = [self javascriptDataWithJavascriptInjection:data];
                 }
                 // Don't do this injection the next time around
                 firstChunk = NO;
