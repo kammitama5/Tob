@@ -138,7 +138,6 @@
     float sizeFactor = UIInterfaceOrientationIsPortrait([UIApplication sharedApplication].statusBarOrientation) ? kPortraitSizeFactor: kLandscapeSizeFactor;
     float offset = UIInterfaceOrientationIsPortrait([UIApplication sharedApplication].statusBarOrientation) ? kPortraitTabDisplayOffset: kLandscapeTabDisplayOffset;
     float titleHeight = 20;
-#warning -5 is hacky, find why it's not centered without it
     float topSpace = self.tabSize.height * (1 - sizeFactor) / 2 + offset - [UIApplication sharedApplication].statusBarFrame.size.height - 5;
     float yPosition = [UIApplication sharedApplication].statusBarFrame.size.height + topSpace / 2 - titleHeight / 2 - 5;
     
@@ -466,7 +465,6 @@
             // Don't make the page control go too far right
             xOrigin = kPageControlDotRadius + kPageControlDotSpacing / 2;
         } else if (xOrigin + pageControlWidth + kPageControlDotSpacing < size.width) {
-#warning Adding kPageControlDotSpacing is kinda hacky, find out why it's needed
             // Don't make the page control go too far left
             // No need to use kPageControlDotRadius and kPageControlDotSpacing as they are included in pageControlWidth
             xOrigin = size.width - pageControlWidth - kPageControlDotSpacing;

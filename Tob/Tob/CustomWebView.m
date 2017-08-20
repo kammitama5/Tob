@@ -27,17 +27,16 @@ static char SSLWarningKey;
     
     if (self) {
         self.backgroundColor = [UIColor whiteColor];
-        
+
         self.clipsToBounds = YES;
         self.scrollView.clipsToBounds = YES;
-        [[self scrollView] setContentInset:UIEdgeInsetsMake(0, 0, 44, 0)];
-        [[self scrollView] setScrollIndicatorInsets:UIEdgeInsetsMake(0, 0, 44, 0)];
         self.scalesPageToFit = YES;
-        
-        self.delegate = self;
 
-        [(UIScrollView *)[self.subviews objectAtIndex:0] setScrollsToTop:NO];
+        self.delegate = self;
         
+        [self setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
+        [self setProgress:0.0f];
+        [self setTLSStatus:TLSSTATUS_HIDDEN];
         self.url = [[NSURL alloc] initWithString:@""];
         _frameLoadInterruptedCount = 0;
         
@@ -148,7 +147,7 @@ static char SSLWarningKey;
         NSURL *url = [error.userInfo objectForKey:NSURLErrorFailingURLErrorKey];
         
         NSURL *failingURL = [error.userInfo objectForKey:@"NSErrorFailingURLKey"];
-        UIAlertView* alertView = [[UIAlertView alloc]
+        UIAlertView *alertView = [[UIAlertView alloc]
                                   initWithTitle:NSLocalizedString(@"Cannot Verify Website Identity", nil)
                                   message:[NSString stringWithFormat:NSLocalizedString(@"Either the SSL certificate for '%@' is self-signed or the certificate was signed by an untrusted authority.\n\nFor normal websites, it is generally unsafe to proceed.\n\nFor .onion websites (or sites using CACert or self-signed certificates), you may proceed if you think you can trust this website's URL.", nil), url.host]
                                   delegate:nil
@@ -366,7 +365,6 @@ static char SSLWarningKey;
 }
 
 
-
 #pragma mark - UIWebViewDelegate
 
 - (void)webViewDidStartLoad:(UIWebView *)webView {
@@ -377,8 +375,10 @@ static char SSLWarningKey;
         
     if ([[[[[webView request] URL] scheme] lowercaseString] isEqualToString:@"https"]) {
         [self updateTLSStatus:TLSSTATUS_SECURE];
-    } else if ([[[[webView request] URL] scheme] isEqualToString:@""]){
+    } else if ([[[webView request] URL] scheme] && ![[[[webView request] URL] scheme] isEqualToString:@""]){
         [self updateTLSStatus:TLSSTATUS_INSECURE];
+    } else {
+        [self updateTLSStatus:TLSSTATUS_HIDDEN];
     }
 }
 
@@ -415,6 +415,7 @@ static char SSLWarningKey;
         [_parent updateNavigationItems];
     }
     
+    [self updateTLSStatus:TLSSTATUS_HIDDEN];
     [self setProgress:1.0f];
 }
 
@@ -448,7 +449,13 @@ static char SSLWarningKey;
     [_openPdfView removeFromSuperview];
     _openPdfView = nil;
     _openPDFButton = nil;
-        
+    
+    if ([[[webView request] URL] scheme] && ![[[[webView request] URL] scheme] isEqualToString:@""]){
+        [self updateTLSStatus:TLSSTATUS_INSECURE];
+    } else {
+        [self updateTLSStatus:self.TLSStatus];
+    }
+    
     return YES;
 }
 
@@ -509,7 +516,7 @@ static char SSLWarningKey;
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
     if ([gestureRecognizer isKindOfClass:[UIScreenEdgePanGestureRecognizer class]])
         return YES;
-    
+        
     if (![gestureRecognizer isKindOfClass:[UILongPressGestureRecognizer class]])
         return NO;
     

@@ -578,7 +578,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     
     Bookmark *bookmark = (Bookmark *)[NSEntityDescription insertNewObjectForEntityForName:@"Bookmark" inManagedObjectContext:context];
     [bookmark setTitle:NSLocalizedString(@"Search: DuckDuckGo", nil)];
-    [bookmark setUrl:@"http://3g2upl4pq6kufc4m.onion/html/"];
+    [bookmark setUrl:@"https://3g2upl4pq6kufc4m.onion/html/"];
     [bookmark setOrder:i++];
     
     bookmark = (Bookmark *)[NSEntityDescription insertNewObjectForEntityForName:@"Bookmark" inManagedObjectContext:context];
@@ -711,7 +711,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         if ([[UIApplication sharedApplication] canOpenURL:url]) {
             //NSLog(@"can open %@", [navigationURL absoluteString]);
             NSString *msg = [NSString stringWithFormat:NSLocalizedString(@"Tob cannot load a '%@' link, but another app you have installed can.\n\nNote that the other app will not load data over Tor, which could leak identifying information.\n\nDo you wish to proceed?", nil), url.scheme, nil];
-            UIAlertView* alertView = [[UIAlertView alloc]
+            UIAlertView *alertView = [[UIAlertView alloc]
                                       initWithTitle:NSLocalizedString(@"Open Other App?", nil)
                                       message:msg
                                       delegate:nil
@@ -1134,7 +1134,6 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         exit(0);
     }
     
-    
     if ((alertView.tag == ALERTVIEW_EXTERN_PROTO)) {
         if (buttonIndex == 1) {
             // Warned user about opening URL in external app and they said it's OK.
@@ -1264,11 +1263,8 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 
     CustomWebView *webView = [[CustomWebView alloc] initWithFrame:self.view.bounds];
     [webView setCenter:newTab.center];
-    [webView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
     [webView setParent:self];
     [webView.scrollView setScrollsToTop:NO];
-    [webView setProgress:0.0f];
-    [webView setTLSStatus:TLSSTATUS_HIDDEN];
     [newTab addSubview:webView];
     
     MTScrollBarManager *scrollBarManager = [[MTScrollBarManager alloc] initWithNavBar:self.navBar andToolBar:self.selectedToolbar andScrollView:webView.scrollView];
@@ -1374,10 +1370,15 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         } else {
             [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_HIDDEN];
         }
+        [self.navBar.textField setText:[url absoluteString]];
+        [self showTLSStatus];
         
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
         [_webViewObject loadRequest:request];
         [(CustomWebView *)_webViewObject setNeedsForceRefresh:NO];
+        
+        UIButton *refreshStopButton = _webViewObject.isLoading ? _addressTextField.stopButton : _addressTextField.refreshButton;
+        refreshStopButton.alpha = _addressTextField.text.length > 0;
     }
 }
 
@@ -1400,6 +1401,8 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         [webView.scrollView.pinchGestureRecognizer setEnabled:YES];
         [webView.scrollView.panGestureRecognizer setEnabled:YES];
     }
+    
+    [self tabsDidBecomeHidden];
 }
 
 @end
