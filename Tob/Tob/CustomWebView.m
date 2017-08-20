@@ -43,6 +43,8 @@ static char SSLWarningKey;
         
         _needsForceRefresh = NO;
         
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(webKitprogressEstimateChanged:) name:@"WebProgressEstimateChangedNotification" object:[self valueForKeyPath:@"documentView.webView"]];
+        
         UILongPressGestureRecognizer *gestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(displayLongPressMenu:)];
         [gestureRecognizer setDelegate:self];
         [self addGestureRecognizer:gestureRecognizer];
@@ -50,7 +52,7 @@ static char SSLWarningKey;
     return self;
 }
 
-- (void) setFrame:(CGRect)frame {
+- (void)setFrame:(CGRect)frame {
     [super setFrame:frame];
     
     CGRect openPDFViewFrame = frame;
@@ -70,30 +72,13 @@ static char SSLWarningKey;
     }
 }
 
-- (NSMutableDictionary *)progressDictionary {
-    if (!_progressDictionary) {
-        _progressDictionary = [[NSMutableDictionary alloc] initWithObjects:@[@0, @0] forKeys:@[@"requestCount", @"doneCount"]];
-    }
+- (void)webKitprogressEstimateChanged:(NSNotification *)notification {
+    [self setProgress:[[[notification object] valueForKey:@"estimatedProgress"] floatValue]];
     
-    if (_progressDictionary && [[_progressDictionary objectForKey:@"requestCount"] intValue] != 0) {
-        float progress = [[_progressDictionary objectForKey:@"doneCount"] floatValue] / [[_progressDictionary objectForKey:@"requestCount"] floatValue];
-        // When the request count is small, the progress isn't very precise, so assume it's smaller than the value we found.
-        // Plus this makes the bar move a bit when sending more requests.
-        // Multiply by 0.95 to make sure the bar never reaches 1 before the end of the requests
-        progress = 0.95 * (progress - (1 / (5 * [[_progressDictionary objectForKey:@"requestCount"] intValue])));
-        if (progress >= 0.05f && fabsf(progress - _progress) > 0.1) {
-            [_parent.progressValues replaceObjectAtIndex:self.index withObject:[NSNumber numberWithFloat:progress]];
-            if (self.index == _parent.currentIndex) {
-                [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
-                    [_parent updateProgress:progress animated:YES];
-                    [_parent updateNavigationItems];
-                }];
-            }
-            _progress = progress;
-        }
+    if (self.index == _parent.currentIndex) {
+        [_parent updateProgress:self.progress animated:YES];
+        [_parent updateNavigationItems];
     }
-    
-    return _progressDictionary;
 }
 
 - (int)index {
@@ -339,7 +324,7 @@ static char SSLWarningKey;
 }
 
 - (void)updateTLSStatus:(Byte)newStatus {
-    _parent.tlsStatuses[self.index] = [NSNumber numberWithInt:newStatus];
+    [_parent.contentViews[self.index] setTLSStatus:newStatus];
     
     if (self.index == _parent.currentIndex) {
         [_parent performSelectorOnMainThread:@selector(showTLSStatus) withObject:nil waitUntilDone:NO];
@@ -405,14 +390,12 @@ static char SSLWarningKey;
         [[appDelegate.tabsViewController tabAtIndex:self.index] setTitle:[webView stringByEvaluatingJavaScriptFromString:@"document.title"]];
     
     if (self.index == _parent.currentIndex) {
-        [_parent.progressValues replaceObjectAtIndex:self.index withObject:[NSNumber numberWithFloat:1.0f]];
-        _progress = 1.0f;
         [_parent performSelector:@selector(hideProgressBarAnimated:) withObject:@YES afterDelay:0.8];
         [_parent updateProgress:1.0f animated:YES];
         [_parent updateNavigationItems];
     }
     
-    _progressDictionary = nil;
+    [self setProgress:1.0f];
     
     // Increment the rating counter, but don't show the notification as it will interrupt the browsing experience
     [[iRate sharedInstance] logEvent:YES];
@@ -427,14 +410,12 @@ static char SSLWarningKey;
     [self informError:error];
     
     if (self.index == _parent.currentIndex) {
-        [_parent.progressValues replaceObjectAtIndex:self.index withObject:[NSNumber numberWithFloat:1.0f]];
-        _progress = 1.0f;
         [_parent updateProgress:1.0f animated:YES];
         [_parent hideProgressBarAnimated:YES];
         [_parent updateNavigationItems];
     }
     
-    _progressDictionary = nil;
+    [self setProgress:1.0f];
 }
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
@@ -452,8 +433,7 @@ static char SSLWarningKey;
     if (title && self.index < _parent.tabsCount)
         [[appDelegate.tabsViewController tabAtIndex:self.index] setTitle:title];
     
-    [_parent.progressValues replaceObjectAtIndex:self.index withObject:[NSNumber numberWithFloat:0.05f]];
-    _progress = 0.05f;
+    [self setProgress:0.05f];
     if (self.index == _parent.currentIndex) {
         [_parent updateProgress:_progress animated:NO];
         [_parent showProgressBarAnimated:YES];

@@ -25,8 +25,6 @@ extern const char AlertViewIncomingUrl;
 @property (nonatomic) int newIdentityNumber; // An integer containing the current identity number, to avoid showing the wrong IP
 
 
-- (NSMutableArray *)tlsStatuses;
-- (NSMutableArray *)progressValues;
 - (NSMutableArray<CustomWebView *> *)contentViews;
 
 - (void)loadURL:(NSURL *)url;

@@ -41,14 +41,8 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 
 
 @implementation TabsViewController {
-    // Array of the TLSS Statuses for the webviews
-    NSMutableArray *_tlsStatuses;
-    
     // Array of contentviews that are displayed in the tabs
     NSMutableArray *_contentViews;
-    
-    // Array of the progress for each web view
-    NSMutableArray *_progressValues;
     
     // Web
     UIWebView *_webViewObject;
@@ -424,27 +418,11 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 
 #pragma mark - UIViewController Methods
 
-- (NSMutableArray *)tlsStatuses {
-    if (!_tlsStatuses) {
-        _tlsStatuses = [[NSMutableArray alloc] init];
-    }
-    
-    return _tlsStatuses;
-}
-
 - (NSMutableArray *)contentViews {
     if (!_contentViews) {
         _contentViews = [[NSMutableArray alloc] init];
     }
     return _contentViews;
-}
-
-- (NSMutableArray *)progressValues {
-    if (!_progressValues) {
-        _progressValues = [[NSMutableArray alloc] init];
-    }
-    
-    return _progressValues;
 }
 
 - (UIBarButtonItem *)backBarButtonItem {
@@ -721,11 +699,11 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         [_webViewObject loadRequest:req];
         
         if ([urlProto isEqualToString:@"https"]) {
-            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_SECURE]];
+            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_SECURE];
         } else if (urlProto && ![urlProto isEqualToString:@""]) {
-            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_INSECURE]];
+            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_INSECURE];
         } else {
-            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
+            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_HIDDEN];
         }
         [self showTLSStatus];
     } else {
@@ -781,11 +759,11 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         
         NSString *urlProto = [[url scheme] lowercaseString];
         if ([urlProto isEqualToString:@"https"]) {
-            [self.tlsStatuses replaceObjectAtIndex:self.tabsCount - 1 withObject:[NSNumber numberWithInt:TLSSTATUS_SECURE]];
+            [(CustomWebView *)[[self contentViews] objectAtIndex:self.tabsCount - 1] setTLSStatus:TLSSTATUS_SECURE];
         } else if (urlProto && ![urlProto isEqualToString:@""]) {
-            [self.tlsStatuses replaceObjectAtIndex:self.tabsCount - 1 withObject:[NSNumber numberWithInt:TLSSTATUS_INSECURE]];
+            [(CustomWebView *)[[self contentViews] objectAtIndex:self.tabsCount - 1] setTLSStatus:TLSSTATUS_INSECURE];
         } else {
-            [self.tlsStatuses replaceObjectAtIndex:self.tabsCount - 1 withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
+            [(CustomWebView *)[[self contentViews] objectAtIndex:self.tabsCount - 1] setTLSStatus:TLSSTATUS_HIDDEN];
         }
         [self showTLSStatus];
 
@@ -833,11 +811,11 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     
     NSString *urlProto = [[url scheme] lowercaseString];
     if ([urlProto isEqualToString:@"https"]) {
-        [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_SECURE]];
+        [(CustomWebView *)[[self contentViews] objectAtIndex:self.currentIndex] setTLSStatus:TLSSTATUS_SECURE];
     } else if (urlProto && ![urlProto isEqualToString:@""]){
-        [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_INSECURE]];
+        [(CustomWebView *)[[self contentViews] objectAtIndex:self.currentIndex] setTLSStatus:TLSSTATUS_INSECURE];
     } else {
-        [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
+        [(CustomWebView *)[[self contentViews] objectAtIndex:self.currentIndex] setTLSStatus:TLSSTATUS_HIDDEN];
     }
     [self showTLSStatus];
 
@@ -990,9 +968,11 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 }
 
 - (void)showTLSStatus {
-    if ([self.tlsStatuses objectAtIndex:self.currentIndex] == [NSNumber numberWithInt:TLSSTATUS_HIDDEN]) {
+    int tlsStatus = [(CustomWebView *)_webViewObject TLSStatus];
+    
+    if (tlsStatus == TLSSTATUS_HIDDEN) {
         [_addressTextField setLeftViewMode:UITextFieldViewModeNever];
-    } else if ([self.tlsStatuses objectAtIndex:self.currentIndex] == [NSNumber numberWithInt:TLSSTATUS_SECURE]) {
+    } else if (tlsStatus == TLSSTATUS_SECURE) {
         [_addressTextField setLeftViewMode:UITextFieldViewModeUnlessEditing];
         [_addressTextField.tlsButton setImage:[[UIImage imageNamed:@"Lock"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
     } else {
@@ -1219,9 +1199,9 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     NSString *urlString = [self isURL:textField.text];
     if (urlString) {
         if ([urlString hasPrefix:@"https"])
-            [[self tlsStatuses] replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInteger:TLSSTATUS_SECURE]];
+            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_SECURE];
         else
-            [[self tlsStatuses] replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInteger:TLSSTATUS_INSECURE]];
+            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_INSECURE];
         
         NSURL *url = [NSURL URLWithString:urlString];
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
@@ -1245,9 +1225,9 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
             urlString = [[NSString stringWithFormat:[[searchEngineURLs objectForKey:searchEngine] objectForKey:@"search_no_js"], textField.text] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
         
         if ([urlString hasPrefix:@"https"])
-            [[self tlsStatuses] replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInteger:TLSSTATUS_SECURE]];
+            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_SECURE];
         else
-            [[self tlsStatuses] replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInteger:TLSSTATUS_INSECURE]];
+            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_INSECURE];
         
         NSURL *url = [NSURL URLWithString:urlString];
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
@@ -1287,14 +1267,14 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     [webView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
     [webView setParent:self];
     [webView.scrollView setScrollsToTop:NO];
+    [webView setProgress:0.0f];
+    [webView setTLSStatus:TLSSTATUS_HIDDEN];
     [newTab addSubview:webView];
     
     MTScrollBarManager *scrollBarManager = [[MTScrollBarManager alloc] initWithNavBar:self.navBar andToolBar:self.selectedToolbar andScrollView:webView.scrollView];
     [newTab setScrollBarManager:scrollBarManager];
     
     [self.contentViews insertObject:webView atIndex:index];
-    [self.tlsStatuses insertObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN] atIndex:index];
-    [self.progressValues insertObject:[NSNumber numberWithFloat:0.0f] atIndex:index];
 
     return newTab;
 }
@@ -1304,12 +1284,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 
 - (void)didMoveTabAtIndex:(int)fromIndex toIndex:(int)toIndex {
     CustomWebView *contentView = [self.contentViews objectAtIndex:fromIndex];
-    NSNumber *tlsStatus = [self.tlsStatuses objectAtIndex:fromIndex];
-    NSNumber *progressValue = [self.progressValues objectAtIndex:fromIndex];
-    
     [self.contentViews removeObjectAtIndex:fromIndex];
-    [self.tlsStatuses removeObjectAtIndex:fromIndex];
-    [self.progressValues removeObjectAtIndex:fromIndex];
     
     int newIndex = toIndex;
     if (fromIndex < toIndex) {
@@ -1318,15 +1293,11 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     }
     
     [self.contentViews insertObject:contentView atIndex:newIndex];
-    [self.tlsStatuses insertObject:tlsStatus atIndex:newIndex];
-    [self.progressValues insertObject:progressValue atIndex:newIndex];
 }
 
 - (void)didCloseTabAtIndex:(int)index {
     [[self.contentViews objectAtIndex:index] stopLoading];
     [self.contentViews removeObjectAtIndex:index];
-    [self.tlsStatuses removeObjectAtIndex:index];
-    [self.progressValues removeObjectAtIndex:index];
 }
 
 - (void)tabsWillBecomeVisible {
@@ -1346,11 +1317,11 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         
         NSString *urlProto = [[url scheme] lowercaseString];
         if ([urlProto isEqualToString:@"https"]) {
-            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_SECURE]];
+            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_SECURE];
         } else if (urlProto && ![urlProto isEqualToString:@""]) {
-            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_INSECURE]];
+            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_INSECURE];
         } else {
-            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
+            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_HIDDEN];
         }
 
         [self.navBar.textField setText:[url absoluteString]];
@@ -1373,14 +1344,16 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     _webViewObject = [self.contentViews objectAtIndex:self.currentIndex];
     _progressView.hidden = NO;
     [_webViewObject.scrollView setScrollsToTop:YES];
-    [_progressView setProgress:[[_progressValues objectAtIndex:self.currentIndex] floatValue]];
+    [_progressView setProgress:[(CustomWebView *)_webViewObject progress]];
     [self.navBar.textField setText:[[(CustomWebView *)_webViewObject url] absoluteString]];
     
     UIButton *refreshStopButton = _webViewObject.isLoading ? _addressTextField.stopButton : _addressTextField.refreshButton;
     _addressTextField.rightView = refreshStopButton;
     
-    if ([self.progressValues objectAtIndex:self.currentIndex] == [NSNumber numberWithFloat:1.0f]) {
+    if ([(CustomWebView *)_webViewObject progress] == 1.0f) {
         _progressView.alpha = 0.0f; // Done loading for this page, don't show the progress
+    } else {
+        _progressView.alpha = 1.0f;
     }
     
     if ([[_addressTextField text] isEqualToString:@""] && ![_webViewObject isLoading]) {
@@ -1395,11 +1368,11 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         
         NSString *urlProto = [[url scheme] lowercaseString];
         if ([urlProto isEqualToString:@"https"]) {
-            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_SECURE]];
+            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_SECURE];
         } else if (urlProto && ![urlProto isEqualToString:@""]) {
-            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_INSECURE]];
+            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_INSECURE];
         } else {
-            [self.tlsStatuses replaceObjectAtIndex:self.currentIndex withObject:[NSNumber numberWithInt:TLSSTATUS_HIDDEN]];
+            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_HIDDEN];
         }
         
         NSURLRequest *request = [NSURLRequest requestWithURL:url];

@@ -12,17 +12,15 @@
 @class TabsViewController;
 
 @interface CustomWebView : UIWebView <UIWebViewDelegate, UIAlertViewDelegate, UIGestureRecognizerDelegate> {
-    NSMutableDictionary *_progressDictionary;
     UIDocumentInteractionController *_docController;
     UIView *_openPdfView;
     UIButton *_openPDFButton;
-    float _progress;
 }
 
 @property (nonatomic, strong) NSURL *url;
 @property (nonatomic) BOOL needsForceRefresh;
-
-- (NSMutableDictionary *)progressDictionary;
+@property (nonatomic) float progress;
+@property int TLSStatus;
 
 - (void)setParent:(TabsViewController *)parent;
 - (void)updateTLSStatus:(Byte)newStatus;

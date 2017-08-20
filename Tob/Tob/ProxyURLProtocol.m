@@ -90,15 +90,6 @@
 }
 
 - (void)startLoading {
-    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    for (CustomWebView *webView in [appDelegate.tabsViewController contentViews]) {
-        if ([webView isLoading] && [[[[webView url] host] stringByReplacingOccurrencesOfString:@"www." withString:@""] isEqualToString:[[[_request mainDocumentURL] host] stringByReplacingOccurrencesOfString:@"www." withString:@""]] && [[[webView url] pathComponents] isEqualToArray:[[_request mainDocumentURL] pathComponents]]) {
-            
-            NSNumber *requestCount = [NSNumber numberWithInt:[[[webView progressDictionary] objectForKey:@"requestCount"] intValue] + 1];
-            [[webView progressDictionary] setObject:requestCount forKey:@"requestCount"];
-        }
-    }
-    
     if ([[[[[self request] URL] scheme] lowercaseString] isEqualToString:@"tob"]) {
         NSURL *url;
         NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
@@ -117,6 +108,7 @@
         NSURLConnection *con = [NSURLConnection connectionWithRequest:newRequest delegate:self];
         [self setConnection:(CKHTTPConnection *)con]; // lie.
     } else {
+        AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
         NSMutableDictionary *settings = appDelegate.getSettings;
         BOOL blockContent = [[settings valueForKey:@"enable-content-blocker"] boolValue];
         
@@ -521,31 +513,12 @@
     [self.client URLProtocolDidFinishLoading:self];
     [self setConnection:nil];
     _data = nil;
-    
-    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    for (CustomWebView *webView in [appDelegate.tabsViewController contentViews]) {
-        if ([webView isLoading] && [[[[webView url] host] stringByReplacingOccurrencesOfString:@"www." withString:@""] isEqualToString:[[[_request mainDocumentURL] host] stringByReplacingOccurrencesOfString:@"www." withString:@""]] && [[[webView url] pathComponents] isEqualToArray:[[_request mainDocumentURL] pathComponents]]) {
-            
-            NSNumber *doneCount = [NSNumber numberWithInt:[[[webView progressDictionary] objectForKey:@"doneCount"] intValue] + 1];
-            [[webView progressDictionary] setObject:doneCount forKey:@"doneCount"];
-        }
-    }
 }
 - (void)HTTPConnection:(CKHTTPConnection *)connection didFailWithError:(NSError *)error {
     [self.client URLProtocol:self didFailWithError:error];
     [self setConnection:nil];
     _data = nil;
-    
-    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    for (CustomWebView *webView in [appDelegate.tabsViewController contentViews]) {
-        if ([webView isLoading] && [[[[webView url] host] stringByReplacingOccurrencesOfString:@"www." withString:@""] isEqualToString:[[[_request mainDocumentURL] host] stringByReplacingOccurrencesOfString:@"www." withString:@""]] && [[[webView url] pathComponents] isEqualToArray:[[_request mainDocumentURL] pathComponents]]) {
-            
-            NSNumber *doneCount = [NSNumber numberWithInt:[[[webView progressDictionary] objectForKey:@"doneCount"] intValue] + 1];
-            [[webView progressDictionary] setObject:doneCount forKey:@"doneCount"];
-        }
-    }}
-
-
+}
 
 - (NSData *)htmlDataWithJavascriptInjection:incomingData {
     /* As used in "- (void)HTTPConnection:(CKHTTPConnection *)connection didReceiveData:(NSData *)data",
