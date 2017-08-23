@@ -527,7 +527,7 @@ connLastAutoIPStack = _connLastAutoIPStack
                     }
                 }
                 
-                if ([correspondingNodes count] == 0)
+                if ([correspondingNodes count] <= 2)
                     return; // We don't care about this node since it's not in self.currentNodes
                 
                 /* Extract the node's name and IP */
@@ -550,17 +550,19 @@ connLastAutoIPStack = _connLastAutoIPStack
                 [_mSocket writeString:[NSString stringWithFormat:@"getinfo ip-to-country/%@\n", nodeIP] encoding:NSUTF8StringEncoding];
                 
                 /* Extract the node's version */
-                if ([infoArray count] <= 2)
+                if ([infoArray count] <= 2 || [[infoArray objectAtIndex:2] length] <= 2)
                     return;
+                
                 // Format should be "s <VERSION_INFO>"
-                tmp = [[infoArray objectAtIndex:2] substringFromIndex:2]; // Get rid of the "w Bandwidth="
+                tmp = [[infoArray objectAtIndex:2] substringFromIndex:2]; // Get rid of the "s ="
                 for (TorNode *node in correspondingNodes) {
                     [node setVersion:tmp];
                 }
 
                 /* Extract the node's bandwidth */
-                if ([infoArray count] <= 3)
+                if ([infoArray count] <= 3 || [[infoArray objectAtIndex:3] length] <= 12)
                     return;
+                
                 // Format should be "w Bandwidth=<BANDWIDTH>"
                 tmp = [[infoArray objectAtIndex:3] substringFromIndex:12]; // Get rid of the "w Bandwidth="
                 for (TorNode *node in correspondingNodes) {
