@@ -52,6 +52,7 @@
     [self.tlsButton setFrame:CGRectMake(0, 0, 29, 29)];
     [self.tlsButton setBackgroundColor:[UIColor clearColor]];
     [self.tlsButton setImage:[[UIImage imageNamed:@"Lock"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+    [self.tlsButton setUserInteractionEnabled:NO];
     [self.tlsButton setTintColor:[UIColor grayColor]];
 
     [self setLeftView:self.tlsButton];

@@ -391,7 +391,9 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     }
     
     if (self.tabsCount == 0) {
-        [[self addTabAnimated:NO] setTitle:NSLocalizedString(@"New tab", nil)];
+        NSString *homepage = [appDelegate homepage];
+        [self addTabWithTitle:homepage animated:NO];
+        [[self.contentViews lastObject] setUrl:[NSURL URLWithString:homepage]];
     }
     
     // Select the restored/opened tab
@@ -897,6 +899,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     [_torPanelView addSubview:logButton];
     
     _IPAddressLabel = [[UILabel alloc] initWithFrame:CGRectMake(25, 45, 250, 35)];
+    [_IPAddressLabel setAdjustsFontSizeToFitWidth:YES];
     
     if (_IPAddress)
         _IPAddressLabel.text = [NSString stringWithFormat:NSLocalizedString(@"IP: %@", nil), _IPAddress];
@@ -1205,7 +1208,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         NSURL *url = [NSURL URLWithString:urlString];
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
         [_webViewObject loadRequest:request];
-    } else {
+    } else if (textField.text.length > 0) {
         BOOL javascriptEnabled = true;
         AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         NSMutableDictionary *settings = appDelegate.getSettings;
@@ -1231,7 +1234,10 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         NSURL *url = [NSURL URLWithString:urlString];
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
         [_webViewObject loadRequest:request];
+    } else {
+        [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_HIDDEN];
     }
+    
     return YES;
 }
 
@@ -1387,6 +1393,8 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         [webView.scrollView.pinchGestureRecognizer setEnabled:NO];
         [webView.scrollView.panGestureRecognizer setEnabled:NO];
     }
+    
+    [self tabsWillBecomeVisible];
 }
 
 - (void)didCancelSwitchingTabAtIndex:(int)index {
