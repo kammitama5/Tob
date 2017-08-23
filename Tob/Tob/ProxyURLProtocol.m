@@ -480,9 +480,9 @@
                 // If this is the start of the content of this (gzipped) file, inject any
                 // script-overriding code as necessary.
                 if (incomingContentType == PROXY_CONTENT_HTML) {
-                    newData = [self htmlDataWithJavascriptInjection:data];
+                    newData = [self htmlDataWithJavascriptInjection:newData];
                 } else if (incomingContentType == PROXY_CONTENT_JS) {
-                    newData = [self javascriptDataWithJavascriptInjection:data];
+                    newData = [self javascriptDataWithJavascriptInjection:newData];
                 }
                 // Don't do this injection the next time around
                 firstChunk = NO;
