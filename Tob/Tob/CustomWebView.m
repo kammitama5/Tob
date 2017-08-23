@@ -549,7 +549,6 @@ static char SSLWarningKey;
     openPDFViewFrame.origin.x = (self.frame.size.width - openPDFViewFrame.size.width) / 2;
     
     [_openPdfView setFrame:openPDFViewFrame];
-    [_openPdfView setBackgroundColor:[UIColor whiteColor]];
     [_openPdfView setAlpha:0.95];
     [_openPdfView.layer setCornerRadius:5];
     [_openPdfView.layer setMasksToBounds:NO];
@@ -560,9 +559,18 @@ static char SSLWarningKey;
 
     _openPDFButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, openPDFViewFrame.size.width, openPDFViewFrame.size.height)];
     [_openPDFButton setTitle:NSLocalizedString(@"Open in...", nil) forState:UIControlStateNormal];
-    [_openPDFButton setTitleColor:self.tintColor forState:UIControlStateNormal];
     [_openPDFButton addTarget:self action:@selector(openPDFAction) forControlEvents:UIControlEventTouchUpInside];
     [_openPdfView addSubview:_openPDFButton];
+    
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    NSMutableDictionary *settings = appDelegate.getSettings;
+    if (![[settings valueForKey:@"night-mode"] boolValue]) {
+        [_openPdfView setBackgroundColor:[UIColor whiteColor]];
+        [_openPDFButton setTitleColor:self.tintColor forState:UIControlStateNormal];
+    } else {
+        [_openPdfView setBackgroundColor:[UIColor darkGrayColor]];
+        [_openPDFButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    }
     
     [self addSubview:_openPdfView];
 }
