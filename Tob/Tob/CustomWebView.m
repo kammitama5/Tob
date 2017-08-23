@@ -51,6 +51,12 @@ static char SSLWarningKey;
     return self;
 }
 
+- (void)didMoveToWindow {
+    if (self.window) {
+        [self updatePDFViewColors];
+    }
+}
+
 - (void)setFrame:(CGRect)frame {
     [super setFrame:frame];
     
@@ -538,6 +544,7 @@ static char SSLWarningKey;
     return NO;
 }
 
+
 #pragma mark -  PDF management
 
 - (void)displayOpenPDFView {
@@ -562,6 +569,16 @@ static char SSLWarningKey;
     [_openPDFButton addTarget:self action:@selector(openPDFAction) forControlEvents:UIControlEventTouchUpInside];
     [_openPdfView addSubview:_openPDFButton];
     
+    [self updatePDFViewColors];
+    
+    [self addSubview:_openPdfView];
+}
+
+- (void)updatePDFViewColors {
+    if (!_openPdfView || !_openPDFButton) {
+        return;
+    }
+    
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     NSMutableDictionary *settings = appDelegate.getSettings;
     if (![[settings valueForKey:@"night-mode"] boolValue]) {
@@ -571,8 +588,6 @@ static char SSLWarningKey;
         [_openPdfView setBackgroundColor:[UIColor darkGrayColor]];
         [_openPDFButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     }
-    
-    [self addSubview:_openPdfView];
 }
 
 - (BOOL)isPDFContentLoadedInWebView:(UIWebView *)webView {
