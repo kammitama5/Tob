@@ -47,6 +47,7 @@
     [self addGestureRecognizer:self.switchTabPanGestureRecognizer];
     
     // Add a tap gesture recognizer to prevent scrollViewWillEndDragging being called by simply tapping the scroll view (usually after scrolling to change tab), making the view scroll back 1 tab
+    // TODO: Kinda hacky
     self.tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap)];
     [self.tapGestureRecognizer setNumberOfTouchesRequired:1];
     [self.tapGestureRecognizer setNumberOfTapsRequired:1];
