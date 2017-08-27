@@ -50,8 +50,8 @@
 "Tob cannot display this type of content." = "Tob ne peut afficher ce type de contenu.";
 "Could not connect to the server. Either the domain name is incorrect, the server is inaccessible, or the Tor circuit was broken." = "Impossible de se connecter au serveur. Soit le nom de domaine est incorrect, soit le serveur est inaccessible, soit le circuit Tor est brisé.";
 "The website you tried to access could not be found." = "Cette page n'a pu être trouvée.";
-"Cannot Open Page" = "Impossible d'ouvrir cette page.";
-"An error occurred: %@\n(Error \"%@: %li)\"" = "Une erreur esy survenue : %@\n(Erreur \"%@: %li)\"";
+"Cannot open page" = "Impossible d'ouvrir cette page";
+"An error occurred: %@" = "Une erreur est survenue : %@";
 "Failed to download image" = "Échec du téléchargement de l'image";
 "Couldn't retrieve the image's data" = "Impossible de télécharger les données de l'image.";
 "Saved image" = "Image enregistrée";
@@ -110,6 +110,7 @@
 "Whitelist" = "Liste blanche";
 "Ruleset" = "Règles de blocage";
 "Rate on the App Store" = "Noter sur l'App Store";
+"Report a bug" = "Report a bug";
 "License" = "License";
 "Leave blank to use default Tob home page." = "Laisser vide pour utiliser la page par défaut.";
 "Security Warning" = "Avertissement de sécurité";
@@ -142,6 +143,7 @@
 "Disable temporarly" = "Désactiver temporairement";
 "The content blocker whitelist contains a list of domains for which the content blocker will allow ads. This can be useful is some websites block browser with ad-blockers." = "La liste blanche du bloqueur de contenu est une liste de domaines sur lesquels les publicités sont autorisées. Ceci peut être utile si certains sites bloquent les navigateurs utilisant des bloqueurs de publicités.";
 "Whitelist domain" = "Ajouter à la liste blanche";
+"This will open a webpage in another browser." = "Ceci ouvrira une page web dans un autre navigateur.";
 
 /* Tabs view controller */
 "Search or enter an address" = "Rechercher ou saisir un site";
@@ -155,12 +157,13 @@
 "Open This Link" = "Charger cette URL";
 "Tor panel" = "Tableau de bord Tor";
 "IP: %@" = "IP : %@";
-"IP: Loading…" = "IP : Chargement…";
+"IP: Loading…" = "IP : Erreur…";
+"IP: Error, trying again…" = "IP : Erreur, nouvel essai en cours…";
+"IP: Error" = "IP: Erreur";
 "New identity" = "Nouvelle identité";
 "Clearing cache…" = "Suppression du cache…";
 "Requesting new identity…" = "Demande d'une nouvelle identité…";
 "Add bridge" = "Ajouter un bridge";
-"IP: Error, trying again…" = "IP : Erreur, nouvel essai en cours…";
 "Bridge Configuration" = "Configuration des bridges";
 "You can configure bridges here if your ISP normally blocks access to Tor.\n\nIf you did not mean to access the Bridge configuration, press \"Cancel\", then \"Restart App\", and then re-launch Tob." = "Vous pouvez configurer les bridges ici si votre fournisseur d'accès internet bloque l'accès à Tor.\n\nSi vous ne vouliez pas accéder à cettepage, sélectionnez \"annuler\", puis \"Relancer l'application\", et relancez Tob.";
 "Close all tabs" = "Fermer tous les onglets";
@@ -170,6 +173,7 @@
 "Failed to open PDF" = "Erreur lors de l'ouverture du PDF";
 "Failed to load PDF" = "Erreur lors du chargement du PDF";
 "Open in..." = "Ouvrir avec...";
+"Try again" = "Réessayer";
 
 /* Bookmarks strings */
 "Bookmark Title" = "Titre du signet";

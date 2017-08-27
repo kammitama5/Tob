@@ -36,7 +36,7 @@ static char SSLWarningKey;
         
         [self setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight];
         [self setProgress:0.0f];
-        [self setTLSStatus:TLSSTATUS_HIDDEN];
+        [self updateTLSStatus:TLSSTATUS_HIDDEN];
         self.url = [[NSURL alloc] initWithString:@""];
         _frameLoadInterruptedCount = 0;
         
@@ -182,8 +182,6 @@ static char SSLWarningKey;
                 errorTitle = NSLocalizedString(@"HTTPS Connection Failed", nil);
                 errorMessage = [NSString stringWithFormat:NSLocalizedString(@"A secure connection to '%@' could not be made.\nThe site might be down, there could be a Tor network outage, or your 'minimum SSL/TLS' setting might want stronger security than the website provides.\n\nFull error: '%@'", nil),
                                 url.host, error.localizedDescription];
-                
-                
             } else if ([error.domain isEqualToString:NSURLErrorDomain]) {
                 /* HTTP ERRORS */
                 // https://www.opensource.apple.com/source/Security/Security-55179.13/libsecurity_ssl/Security/SecureTransport.h
@@ -210,19 +208,37 @@ static char SSLWarningKey;
         
         // default
         if ([errorTitle isEqualToString:@""]) {
-            errorTitle = NSLocalizedString(@"Cannot Open Page", nil);
+            errorTitle = NSLocalizedString(@"Cannot open page", nil);
         }
         if ([errorMessage isEqualToString:@""]) {
-            errorMessage = [NSString stringWithFormat:NSLocalizedString(@"An error occurred: %@\n(Error \"%@: %li)\"", nil),
-                                error.localizedDescription, error.domain, (long)error.code];
+            errorMessage = [NSString stringWithFormat:NSLocalizedString(@"An error occurred: %@", nil), error.localizedDescription];
         }
     }
     
     if (errorTitle && errorMessage) {
-        // report the error inside the webview
-        NSString *errorString = [NSString stringWithFormat:@"<div><div><div><div style=\"padding: 40px 15px;text-align: center;\"><h1>%@</h1><div style=\"font-size: 2em;\">%@</div></div></div></div></div>", errorTitle, errorMessage];
+        // Report the error inside the webview
+        NSString *htmlFile = [[NSBundle mainBundle] pathForResource:@"error" ofType:@"html"];
+        NSString *htmlString = [NSString stringWithContentsOfFile:htmlFile encoding:NSUTF8StringEncoding error:nil];
+
+        // Add error title
+        htmlString = [htmlString stringByReplacingOccurrencesOfString:@"${error.title}" withString:errorTitle];
         
-        [self loadHTMLString:errorString baseURL:self.url];
+        // Add error message
+        htmlString = [htmlString stringByReplacingOccurrencesOfString:@"${error.message}" withString:errorMessage];
+        
+        // Add error code
+        NSString *errorDomain = error.domain; // Split domain into different words
+        NSRegularExpression *regexp = [NSRegularExpression regularExpressionWithPattern:@"([a-z])([A-Z])" options:0 error:NULL];
+        errorDomain = [regexp stringByReplacingMatchesInString:errorDomain options:0 range:NSMakeRange(0, errorDomain.length) withTemplate:@"$1_$2"];
+        
+        NSString *errorCode = [NSString stringWithFormat:@"%@ (Code %ld)", errorDomain, (long)error.code];
+        htmlString = [htmlString stringByReplacingOccurrencesOfString:@"${error.code}" withString:errorCode];
+        
+        // Add link to refresh
+        htmlString = [htmlString stringByReplacingOccurrencesOfString:@"${error.href}" withString:[self.url absoluteString]];
+        htmlString = [htmlString stringByReplacingOccurrencesOfString:@"${error.linkTitle}" withString:NSLocalizedString(@"Try again", nil)];
+
+        [self loadHTMLString:htmlString baseURL:self.url];
     }
 }
 
@@ -329,7 +345,7 @@ static char SSLWarningKey;
 }
 
 - (void)updateTLSStatus:(Byte)newStatus {
-    [_parent.contentViews[self.index] setTLSStatus:newStatus];
+    [self setTLSStatus:newStatus];
     
     if (self.index == _parent.currentIndex) {
         [_parent performSelectorOnMainThread:@selector(showTLSStatus) withObject:nil waitUntilDone:NO];

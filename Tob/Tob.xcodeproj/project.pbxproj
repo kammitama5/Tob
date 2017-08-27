@@ -66,6 +66,7 @@
 		336182071E09975200642D0F /* Iobfs4proxy.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 336182061E09975200642D0F /* Iobfs4proxy.framework */; };
 		336182091E09982900642D0F /* Tor.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 336182081E09982900642D0F /* Tor.framework */; };
 		3361820A1E09982900642D0F /* Tor.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 336182081E09982900642D0F /* Tor.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		336D80EF1F5305BC000FB6FD /* error.html in Resources */ = {isa = PBXBuildFile; fileRef = 336D80ED1F5305BC000FB6FD /* error.html */; };
 		336E59D81CE877F400F52A46 /* LICENCE - iRate.md in Resources */ = {isa = PBXBuildFile; fileRef = 336012321CE789FA00DDC290 /* LICENCE - iRate.md */; };
 		3373B58E1F42FEE700BC2608 /* TorNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 3373B58D1F42FEE700BC2608 /* TorNode.m */; };
 		3373B5911F43302000BC2608 /* TorCircuit.m in Sources */ = {isa = PBXBuildFile; fileRef = 3373B5901F43302000BC2608 /* TorCircuit.m */; };
@@ -211,6 +212,7 @@
 		336181F91E09963400642D0F /* geoip6 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = geoip6; sourceTree = "<group>"; };
 		336182061E09975200642D0F /* Iobfs4proxy.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Iobfs4proxy.framework; sourceTree = "<group>"; };
 		336182081E09982900642D0F /* Tor.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Tor.framework; sourceTree = "<group>"; };
+		336D80ED1F5305BC000FB6FD /* error.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; name = error.html; path = Tob/error.html; sourceTree = "<group>"; };
 		3373B58C1F42FEE700BC2608 /* TorNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TorNode.h; sourceTree = "<group>"; };
 		3373B58D1F42FEE700BC2608 /* TorNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TorNode.m; sourceTree = "<group>"; };
 		3373B58F1F43302000BC2608 /* TorCircuit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TorCircuit.h; sourceTree = "<group>"; };
@@ -530,6 +532,7 @@
 				3396C3681CCF739200C7CCE2 /* Assets.xcassets */,
 				33FF98901CDA5CFE0086AED5 /* credits.html */,
 				33AFDFE91CDB703200B6DFBB /* JSTools.js */,
+				336D80ED1F5305BC000FB6FD /* error.html */,
 				33D3DA8E1CDCA402009FCC6B /* searchEngineURLs.plist */,
 			);
 			name = Resources;
@@ -611,6 +614,7 @@
 				3303E5091E33B7E10019949A /* LICENSE - MBProgressHUD in Resources */,
 				334CF95F1CD380E700C3E346 /* LICENSE - QRCodeReaderViewController in Resources */,
 				3334C3EA1F472DE1007DE2E4 /* LICENSE - MTPageView in Resources */,
+				336D80EF1F5305BC000FB6FD /* error.html in Resources */,
 				336181FA1E09963400642D0F /* geoip in Resources */,
 				333E270F1CDB859A00D33B2F /* LICENSE - JFMinimalNotification in Resources */,
 				336E59D81CE877F400F52A46 /* LICENCE - iRate.md in Resources */,

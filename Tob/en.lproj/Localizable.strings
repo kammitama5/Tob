@@ -50,8 +50,8 @@
 "Tob cannot display this type of content." = "Tob cannot display this type of content.";
 "Could not connect to the server. Either the domain name is incorrect, the server is inaccessible, or the Tor circuit was broken." = "Could not connect to the server. Either the domain name is incorrect, the server is inaccessible, or the Tor circuit was broken.";
 "The website you tried to access could not be found." = "The website you tried to access could not be found.";
-"Cannot Open Page" = "Cannot Open Page";
-"An error occurred: %@\n(Error \"%@: %li)\"" = "An error occurred: %@\n(Error \"%@: %li)\"";
+"Cannot open page" = "Cannot open page";
+"An error occurred: %@" = "An error occurred: %@";
 "Failed to download image" = "Failed to download image";
 "Couldn't retrieve the image's data" = "Couldn't retrieve the image's data";
 "Saved image" = "Saved image";
@@ -110,6 +110,7 @@
 "Whitelist" = "Whitelist";
 "Ruleset" = "Ruleset";
 "Rate on the App Store" = "Rate on the App Store";
+"Report a bug" = "Report a bug";
 "License" = "License";
 "Leave blank to use default Tob home page." = "Leave blank to use default Tob home page.";
 "Security Warning" = "Security Warning";
@@ -142,6 +143,7 @@
 "Disable temporarly" = "Disable temporarly";
 "The content blocker whitelist contains a list of domains for which the content blocker will allow ads. This can be useful is some websites block browser with ad-blockers." = "The content blocker whitelist contains a list of domains for which the content blocker will allow ads. This can be useful is some websites block browser with ad-blockers.";
 "Whitelist domain" = "Whitelist domain";
+"This will open a webpage in another browser." = "This will open a webpage in another browser.";
 
 /* Tabs view controller */
 "Search or enter an address" = "Search or enter an address";
@@ -156,11 +158,12 @@
 "Tor panel" = "Tor panel";
 "IP: %@" = "IP: %@";
 "IP: Loading…" = "IP: Loading…";
+"IP: Error, trying again…" = "IP: Error, trying again…";
+"IP: Error" = "IP: Error";
 "New identity" = "New identity";
 "Clearing cache…" = "Clearing cache…";
 "Requesting new identity…" = "Requesting new identity…";
 "Add bridge" = "Add bridge";
-"IP: Error, trying again…" = "IP: Error, trying again…";
 "Bridge Configuration" = "Bridge Configuration";
 "You can configure bridges here if your ISP normally blocks access to Tor.\n\nIf you did not mean to access the Bridge configuration, press \"Cancel\", then \"Restart App\", and then re-launch Tob." = "You can configure bridges here if your ISP normally blocks access to Tor.\n\nIf you did not mean to access the Bridge configuration, press \"Cancel\", then \"Restart App\", and then re-launch Tob.";
 "Close all tabs" = "Close all tabs";
@@ -170,6 +173,7 @@
 "Failed to open PDF" = "Failed to open PDF";
 "Failed to load PDF" = "Failed to load PDF";
 "Open in..." = "Open in...";
+"Try again" = "Try again";
 
 /* Bookmarks strings */
 "Bookmark Title" = "Bookmark Title";
