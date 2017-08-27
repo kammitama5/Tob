@@ -69,7 +69,7 @@
 }
 
 - (float)screenHeight {
-    return [UIScreen mainScreen].bounds.size.height;
+    return self.scrollView.frame.size.height;
 }
 
 - (void)deviceOrientationDidChange:(NSNotification *)notification {

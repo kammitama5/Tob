@@ -157,7 +157,7 @@
 "Open This Link" = "Charger cette URL";
 "Tor panel" = "Tableau de bord Tor";
 "IP: %@" = "IP : %@";
-"IP: Loading…" = "IP : Erreur…";
+"IP: Loading…" = "IP : Chargement…";
 "IP: Error, trying again…" = "IP : Erreur, nouvel essai en cours…";
 "IP: Error" = "IP: Erreur";
 "New identity" = "Nouvelle identité";

@@ -192,7 +192,7 @@
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     NSMutableDictionary *settings = appDelegate.getSettings;
     
-    if ([[[[_request mainDocumentURL] scheme] lowercaseString] isEqualToString:@"https"] && ![[[[response URL] scheme] lowercaseString] isEqualToString:@"https"]) {
+    if ([[[[_request mainDocumentURL] scheme] lowercaseString] isEqualToString:@"https"] && [[response URL] scheme] && ![[[[response URL] scheme] lowercaseString] isEqualToString:@"https"]) {
         for (CustomWebView *webView in [appDelegate.tabsViewController contentViews]) {
             if ([webView isLoading] && [[[[webView url] host] stringByReplacingOccurrencesOfString:@"www." withString:@""] isEqualToString:[[[_request mainDocumentURL] host] stringByReplacingOccurrencesOfString:@"www." withString:@""]] && [[[webView url] pathComponents] isEqualToArray:[[_request mainDocumentURL] pathComponents]]) {
                 

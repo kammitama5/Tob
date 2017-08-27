@@ -21,11 +21,6 @@
 
 #define kNavigationBarAnimationTime 0.2
 
-#define SCREEN_HEIGHT [[UIScreen mainScreen] bounds].size.height
-#define SCREEN_WIDTH [[UIScreen mainScreen] bounds].size.width
-
-#define DeviceOrientation [[UIApplication sharedApplication] statusBarOrientation]
-
 #define ALERTVIEW_SSL_WARNING 1
 #define ALERTVIEW_EXTERN_PROTO 2
 #define ALERTVIEW_INCOMING_URL 3
@@ -38,6 +33,7 @@
 const char AlertViewExternProtoUrl;
 const char AlertViewIncomingUrl;
 static const CGFloat kRestoreAnimationDuration = 0.0f;
+static const int kNewIdentityMaxTries = 5;
 
 
 @implementation TabsViewController {
@@ -74,6 +70,9 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     
     // Bookmarks
     BookmarkTableViewController *_bookmarks;
+    
+    // IP
+    int _newIdentityTryCount;
 }
 
 #pragma mark - Initializing
@@ -84,6 +83,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         self.restorationIdentifier = @"tabsViewController";
         self.restorationClass = [self class];
         _newIdentityNumber = 0;
+        _newIdentityTryCount = 0;
         
         [self initUI];
     }
@@ -125,7 +125,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     _tabsBarButtonItem = [self.selectedToolbar.items objectAtIndex:1];
     
     // Add a loading view for Tor
-    _torDarkBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
+    _torDarkBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
     _torDarkBackgroundView.backgroundColor = [UIColor blackColor];
     _torDarkBackgroundView.alpha = 0.5;
     [self.view addSubview:_torDarkBackgroundView];
@@ -408,13 +408,18 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
             [self scrollToIndex:[appDelegate restoredIndex] animated:NO];
         } completion:^(BOOL finished){
             if (self.currentIndex != 0)
-                ([self.contentViews objectAtIndex:0]).frame = CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+                ([self.contentViews objectAtIndex:0]).frame = CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height);
             
             [self hideTabsAnimated:NO];
             [self.view bringSubviewToFront:_torDarkBackgroundView];
             [self.view bringSubviewToFront:_torLoadingView];
         }];
     }
+}
+
+- (void)setNewIdentityNumber:(int)newIdentityNumber {
+    _newIdentityNumber = newIdentityNumber;
+    _newIdentityTryCount = 0;
 }
 
 
@@ -460,10 +465,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 
 - (UIBarButtonItem *)onionBarButtonItem {
     if (!_onionBarButtonItem) {
-        _onionBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[[UIImage imageNamed:@"Onion"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]
-                                                               style:UIBarButtonItemStylePlain
-                                                              target:self
-                                                              action:@selector(onionTapped:)];
+        _onionBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[[UIImage imageNamed:@"Onion"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] style:UIBarButtonItemStylePlain target:self action:@selector(onionTapped:)];
     }
     return _onionBarButtonItem;
 }
@@ -688,7 +690,18 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 
 - (void)loadURL:(NSURL *)url {    
     NSString *urlProto = [[url scheme] lowercaseString];
-    if ([urlProto isEqualToString:@"tob"]||[urlProto isEqualToString:@"tobs"]||[urlProto isEqualToString:@"http"]||[urlProto isEqualToString:@"https"]) {
+    
+    if ([urlProto isEqualToString:@"tob"]) {
+        NSString *newUrl = [url absoluteString];
+        newUrl = [newUrl stringByReplacingOccurrencesOfString:@"tob" withString:@"http" options:NSLiteralSearch range:[newUrl rangeOfString:@"tob"]];
+        url = [NSURL URLWithString:newUrl];
+    } else if ([urlProto isEqualToString:@"tobs"]) {
+        NSString *newUrl = [url absoluteString];
+        newUrl = [newUrl stringByReplacingOccurrencesOfString:@"tobs" withString:@"https" options:NSLiteralSearch range:[newUrl rangeOfString:@"tobs"]];
+        url = [NSURL URLWithString:newUrl];
+    }
+    
+    if ([urlProto isEqualToString:@"http"] || [urlProto isEqualToString:@"https"]) {
         /***** One of our supported protocols *****/
         
         // Cancel any existing nav
@@ -701,13 +714,12 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         [_webViewObject loadRequest:req];
         
         if ([urlProto isEqualToString:@"https"]) {
-            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_SECURE];
+            [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_SECURE];
         } else if (urlProto && ![urlProto isEqualToString:@""]) {
-            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_INSECURE];
+            [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_INSECURE];
         } else {
-            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_HIDDEN];
+            [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_HIDDEN];
         }
-        [self showTLSStatus];
     } else {
         /***** NOT a protocol that this app speaks, check with the OS if the user wants to *****/
         if ([[UIApplication sharedApplication] canOpenURL:url]) {
@@ -754,20 +766,19 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
 - (void)addNewTabForURL:(NSURL *)url {
     [UIView animateWithDuration:(0.4) animations:^{
         [self addTabWithTitle:url.absoluteString];
-        self.selectedToolbar.frame = CGRectMake(0, SCREEN_HEIGHT - 44, SCREEN_WIDTH, 44);
+        self.selectedToolbar.frame = CGRectMake(0, self.view.frame.size.height - 44, self.view.frame.size.width, 44);
     } completion:^(BOOL finished) {
         if (!finished)
             return;
         
         NSString *urlProto = [[url scheme] lowercaseString];
         if ([urlProto isEqualToString:@"https"]) {
-            [(CustomWebView *)[[self contentViews] objectAtIndex:self.tabsCount - 1] setTLSStatus:TLSSTATUS_SECURE];
+            [(CustomWebView *)[[self contentViews] lastObject] updateTLSStatus:TLSSTATUS_SECURE];
         } else if (urlProto && ![urlProto isEqualToString:@""]) {
-            [(CustomWebView *)[[self contentViews] objectAtIndex:self.tabsCount - 1] setTLSStatus:TLSSTATUS_INSECURE];
+            [(CustomWebView *)[[self contentViews] lastObject] updateTLSStatus:TLSSTATUS_INSECURE];
         } else {
-            [(CustomWebView *)[[self contentViews] objectAtIndex:self.tabsCount - 1] setTLSStatus:TLSSTATUS_HIDDEN];
+            [(CustomWebView *)[[self contentViews] lastObject] updateTLSStatus:TLSSTATUS_HIDDEN];
         }
-        [self showTLSStatus];
 
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
         [[self.contentViews objectAtIndex:self.tabsCount - 1] loadRequest:request];
@@ -813,13 +824,12 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     
     NSString *urlProto = [[url scheme] lowercaseString];
     if ([urlProto isEqualToString:@"https"]) {
-        [(CustomWebView *)[[self contentViews] objectAtIndex:self.currentIndex] setTLSStatus:TLSSTATUS_SECURE];
+        [(CustomWebView *)[[self contentViews] objectAtIndex:self.currentIndex] updateTLSStatus:TLSSTATUS_SECURE];
     } else if (urlProto && ![urlProto isEqualToString:@""]){
-        [(CustomWebView *)[[self contentViews] objectAtIndex:self.currentIndex] setTLSStatus:TLSSTATUS_INSECURE];
+        [(CustomWebView *)[[self contentViews] objectAtIndex:self.currentIndex] updateTLSStatus:TLSSTATUS_INSECURE];
     } else {
-        [(CustomWebView *)[[self contentViews] objectAtIndex:self.currentIndex] setTLSStatus:TLSSTATUS_HIDDEN];
+        [(CustomWebView *)[[self contentViews] objectAtIndex:self.currentIndex] updateTLSStatus:TLSSTATUS_HIDDEN];
     }
-    [self showTLSStatus];
 
     [[[self contentViews] objectAtIndex:self.currentIndex] loadRequest:request];
     
@@ -874,7 +884,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     _torPanelView.layer.masksToBounds = YES;
     _torPanelView.alpha = 0;
     
-    _torDarkBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)];
+    _torDarkBackgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
     _torDarkBackgroundView.backgroundColor = [UIColor blackColor];
     _torDarkBackgroundView.alpha = 0;
     
@@ -1001,15 +1011,26 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
             NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" options:0 error:NULL];
             
             dispatch_async(dispatch_get_main_queue(), ^{
-                if (IP && _newIdentityNumber == currentIndentityNumber) {
-                    NSArray *matches = [regex matchesInString:IP options:0 range:NSMakeRange(0, [IP length])];
-                    if ([matches count] > 0) {
-                        // Extract only the IP address without the text arround it
-                        _IPAddress = [IP substringWithRange:[[matches objectAtIndex:0] range]];
-                        _IPAddressLabel.text = [NSString stringWithFormat:NSLocalizedString(@"IP: %@", nil), _IPAddress];
-                    } else {
+                if (_newIdentityNumber == currentIndentityNumber) {
+                    if (IP) {
+                        NSArray *matches = [regex matchesInString:IP options:0 range:NSMakeRange(0, [IP length])];
+                        if ([matches count] > 0) {
+                            // Extract only the IP address without the text arround it
+                            _IPAddress = [IP substringWithRange:[[matches objectAtIndex:0] range]];
+                            _IPAddressLabel.text = [NSString stringWithFormat:NSLocalizedString(@"IP: %@", nil), _IPAddress];
+                        } else if (_newIdentityTryCount < kNewIdentityMaxTries) {
+                            _newIdentityTryCount += 1;
+                            [self getIPAddress]; // Try again
+                            _IPAddressLabel.text = NSLocalizedString(@"IP: Error, trying again…", nil);
+                        } else {
+                            _IPAddressLabel.text = NSLocalizedString(@"IP: Error", nil);
+                        }
+                    } else if (_newIdentityTryCount < kNewIdentityMaxTries) {
+                        _newIdentityTryCount += 1;
                         [self getIPAddress]; // Try again
                         _IPAddressLabel.text = NSLocalizedString(@"IP: Error, trying again…", nil);
+                    } else {
+                        _IPAddressLabel.text = NSLocalizedString(@"IP: Error", nil);
                     }
                 } else if (_newIdentityNumber == currentIndentityNumber) {
                     [self getIPAddress]; // Try again
@@ -1017,8 +1038,13 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
                 }
             });
         } else if (_newIdentityNumber == currentIndentityNumber) {
-            [self getIPAddress]; // Try again
-            _IPAddressLabel.text = NSLocalizedString(@"IP: Error, trying again…", nil);
+            if (_newIdentityTryCount < kNewIdentityMaxTries) {
+                _newIdentityTryCount += 1;
+                [self getIPAddress]; // Try again
+                _IPAddressLabel.text = NSLocalizedString(@"IP: Error, trying again…", nil);
+            } else {
+                _IPAddressLabel.text = NSLocalizedString(@"IP: Error", nil);
+            }
         }
     });
 }
@@ -1178,7 +1204,7 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         NSManagedObjectContext *context = [appDelegate managedObjectContext];
         _bookmarks.managedObjectContext = context;
         
-        _bookmarks.view.frame = CGRectMake(0, [[UIApplication sharedApplication] statusBarFrame].size.height + 44, SCREEN_WIDTH, SCREEN_HEIGHT - ([[UIApplication sharedApplication] statusBarFrame].size.height + 44));
+        _bookmarks.view.frame = CGRectMake(0, [[UIApplication sharedApplication] statusBarFrame].size.height + 44, self.view.frame.size.width, self.view.frame.size.height - ([[UIApplication sharedApplication] statusBarFrame].size.height + 44));
     }
     
     NSMutableDictionary *settings = appDelegate.getSettings;
@@ -1201,9 +1227,9 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
     NSString *urlString = [self isURL:textField.text];
     if (urlString) {
         if ([urlString hasPrefix:@"https"])
-            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_SECURE];
+            [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_SECURE];
         else
-            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_INSECURE];
+            [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_INSECURE];
         
         NSURL *url = [NSURL URLWithString:urlString];
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
@@ -1227,15 +1253,15 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
             urlString = [[NSString stringWithFormat:[[searchEngineURLs objectForKey:searchEngine] objectForKey:@"search_no_js"], textField.text] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
         
         if ([urlString hasPrefix:@"https"])
-            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_SECURE];
+            [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_SECURE];
         else
-            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_INSECURE];
+            [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_INSECURE];
         
         NSURL *url = [NSURL URLWithString:urlString];
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
         [_webViewObject loadRequest:request];
     } else {
-        [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_HIDDEN];
+        [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_HIDDEN];
     }
     
     return YES;
@@ -1319,15 +1345,14 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         
         NSString *urlProto = [[url scheme] lowercaseString];
         if ([urlProto isEqualToString:@"https"]) {
-            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_SECURE];
+            [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_SECURE];
         } else if (urlProto && ![urlProto isEqualToString:@""]) {
-            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_INSECURE];
+            [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_INSECURE];
         } else {
-            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_HIDDEN];
+            [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_HIDDEN];
         }
 
         [self.navBar.textField setText:[url absoluteString]];
-        [self showTLSStatus];
         
         UIButton *refreshStopButton = _webViewObject.isLoading ? _addressTextField.stopButton : _addressTextField.refreshButton;
         refreshStopButton.alpha = _addressTextField.text.length > 0;
@@ -1365,20 +1390,19 @@ static const CGFloat kRestoreAnimationDuration = 0.0f;
         _progressView.alpha = 0.0f;
     }
     
+    NSURL *url = [(CustomWebView *)_webViewObject url];
+    
+    NSString *urlProto = [[url scheme] lowercaseString];
+    if ([urlProto isEqualToString:@"https"]) {
+        [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_SECURE];
+    } else if (urlProto && ![urlProto isEqualToString:@""]) {
+        [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_INSECURE];
+    } else {
+        [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_HIDDEN];
+    }
+    [self.navBar.textField setText:[url absoluteString]];
+    
     if ([(CustomWebView *)_webViewObject needsForceRefresh]) {
-        NSURL *url = [(CustomWebView *)_webViewObject url];
-        
-        NSString *urlProto = [[url scheme] lowercaseString];
-        if ([urlProto isEqualToString:@"https"]) {
-            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_SECURE];
-        } else if (urlProto && ![urlProto isEqualToString:@""]) {
-            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_INSECURE];
-        } else {
-            [(CustomWebView *)_webViewObject setTLSStatus:TLSSTATUS_HIDDEN];
-        }
-        [self.navBar.textField setText:[url absoluteString]];
-        [self showTLSStatus];
-        
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
         [_webViewObject loadRequest:request];
         [(CustomWebView *)_webViewObject setNeedsForceRefresh:NO];
