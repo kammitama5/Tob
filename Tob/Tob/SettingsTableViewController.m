@@ -67,7 +67,7 @@
     else if (section == 3)
         return 3; // Enable content blocker, whitelist, ruleset
     else if (section == 4)
-        return 2; // App store, credits
+        return 3; // App store, report a bug, credits
     else
         return 0;
 }
@@ -349,6 +349,11 @@
             cell.textLabel.textColor = [UIColor blackColor];
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         } else if (indexPath.row == 1) {
+            cell.textLabel.text = NSLocalizedString(@"Report a bug", nil);
+            cell.textLabel.textAlignment = NSTextAlignmentLeft;
+            cell.textLabel.textColor = [UIColor blackColor];
+            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        } else if (indexPath.row == 2) {
             cell.textLabel.text = NSLocalizedString(@"License", nil);
             cell.textLabel.textAlignment = NSTextAlignmentLeft;
             cell.textLabel.textColor = [UIColor blackColor];
@@ -467,6 +472,26 @@
             NSString *iTunesLink = @"https://itunes.apple.com/app/id1063151782";
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:iTunesLink]];
         } else if (indexPath.row == 1) {
+            // Report bug
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Report a bug", nil) message:NSLocalizedString(@"This will open a webpage in another browser.", nil) preferredStyle:UIAlertControllerStyleAlert];
+            
+            [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Cancel", nil) style:UIAlertActionStyleCancel handler:nil]];
+            
+            UIAlertAction *openAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Open", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *_Nonnull action) {
+                NSString *githubLink = @"https://github.com/JRock007/Tob/issues/new";
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:githubLink]];
+            }];
+            [alert addAction:openAction];
+            
+            if ([alert respondsToSelector:@selector(setPreferredAction:)]) {
+                // This isn't available on iOS 8.
+                // On iOS 8, StyleCancel is in bold
+                [alert setPreferredAction:openAction];
+            }
+            
+            [self presentViewController:alert animated:YES completion:nil];
+            [tableView deselectRowAtIndexPath:indexPath animated:YES];
+        } else if (indexPath.row == 2) {
             // License
             CreditsWebViewController *creditsViewController = [[CreditsWebViewController alloc] init];
             [self.navigationController pushViewController:creditsViewController animated:YES];
