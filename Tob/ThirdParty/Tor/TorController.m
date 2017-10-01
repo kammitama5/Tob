@@ -604,13 +604,19 @@ connLastAutoIPStack = _connLastAutoIPStack
                 }
             }
         }
-        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-        NSString *logString = @"[Tor] Found all current circuit's info:";
         
-        for (TorNode *node in [self.currentCircuits objectAtIndex:0].nodes) {
-            logString = [logString stringByAppendingString:[NSString stringWithFormat:@"\n• %@: %@ (%@) - ID=%@, Bandwidth=%@, v=%@", node.name, node.IP, node.country, node.ID, node.bandwidth, node.version]];
+        NSString *logString;
+        if (self.currentCircuits.count > 0 && [self.currentCircuits objectAtIndex:0].nodes.count > 0) {
+            logString = @"[Tor] Found all current circuit's info:";
+            
+            for (TorNode *node in [self.currentCircuits objectAtIndex:0].nodes) {
+                logString = [logString stringByAppendingString:[NSString stringWithFormat:@"\n• %@: %@ (%@) - ID=%@, Bandwidth=%@, v=%@", node.name, node.IP, node.country, node.ID, node.bandwidth, node.version]];
+            }
+        } else {
+            logString = @"[Tor] Current circuit's nodes not found";
         }
         
+        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         [appDelegate.logViewController logInfo:logString];
     } else {
 #ifdef DEBUG

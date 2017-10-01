@@ -33,8 +33,7 @@
 const char AlertViewExternProtoUrl;
 const char AlertViewIncomingUrl;
 static const CGFloat kRestoreAnimationDuration = 0.0f;
-static const int kNewIdentityMaxTries = 5;
-
+static const int kNewIdentityMaxTries = 3;
 
 @implementation TabsViewController {
     // Array of contentviews that are displayed in the tabs

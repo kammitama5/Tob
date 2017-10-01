@@ -565,29 +565,29 @@ static char SSLWarningKey;
 
 - (void)displayOpenPDFView {
     _openPdfView = [[UIView alloc] init];
+    
     CGRect openPDFViewFrame = self.frame;
     openPDFViewFrame.size.height = 30;
     openPDFViewFrame.size.width = 300;
-    openPDFViewFrame.origin.y = self.frame.size.height - 40;
+    openPDFViewFrame.origin.y = self.frame.size.height - 44 - openPDFViewFrame.size.height; // 44 is toolbar's height
     openPDFViewFrame.origin.x = (self.frame.size.width - openPDFViewFrame.size.width) / 2;
-    
     [_openPdfView setFrame:openPDFViewFrame];
+    
     [_openPdfView setAlpha:0.95];
     [_openPdfView.layer setCornerRadius:5];
     [_openPdfView.layer setMasksToBounds:NO];
     [_openPdfView.layer setShadowOffset:CGSizeMake(-5, 5)];
     [_openPdfView.layer setShadowRadius:5];
     [_openPdfView.layer setShadowOpacity:0.3];
-
+    [self addSubview:_openPdfView];
 
     _openPDFButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, openPDFViewFrame.size.width, openPDFViewFrame.size.height)];
     [_openPDFButton setTitle:NSLocalizedString(@"Open in...", nil) forState:UIControlStateNormal];
     [_openPDFButton addTarget:self action:@selector(openPDFAction) forControlEvents:UIControlEventTouchUpInside];
+    [_openPDFButton setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
     [_openPdfView addSubview:_openPDFButton];
     
     [self updatePDFViewColors];
-    
-    [self addSubview:_openPdfView];
 }
 
 - (void)updatePDFViewColors {
