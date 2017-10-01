@@ -15,6 +15,7 @@
 #import "Ipv6Tester.h"
 #import "JFMinimalNotification.h"
 #import "iRate.h"
+#import <CoreData/CoreData.h>
 
 @interface AppDelegate ()
 - (Boolean)torrcExists;
@@ -33,8 +34,6 @@ windowOverlay,
 tabsViewController,
 logViewController,
 managedObjectContext = __managedObjectContext,
-managedObjectModel = __managedObjectModel,
-persistentStoreCoordinator = __persistentStoreCoordinator,
 doPrepopulateBookmarks,
 usingObfs,
 didLaunchObfsProxy
@@ -238,6 +237,45 @@ didLaunchObfsProxy
 
 #pragma mark - Core Data stack
 
+- (NSManagedObjectContext *)managedObjectContext
+{
+    if (__managedObjectContext != nil) {
+        return __managedObjectContext;
+    }
+    
+    NSManagedObjectModel *model = [NSManagedObjectModel mergedModelFromBundles:[NSBundle allBundles]];
+    NSPersistentStoreCoordinator *psc = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:model];
+    
+    NSURL *url = [[[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject] URLByAppendingPathComponent:@"Settings.sqlite"];
+    
+    NSDictionary *options = @{NSPersistentStoreFileProtectionKey: NSFileProtectionComplete, NSMigratePersistentStoresAutomaticallyOption:@YES};
+    NSError *error = nil;
+    NSPersistentStore *store = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:options error:&error];
+    if (!store) {
+#ifdef DEBUG
+        NSLog(@"Error adding persistent store: %@", error);
+#endif
+        
+        NSError *deleteError = nil;
+        if ([[NSFileManager defaultManager] removeItemAtURL:url error:&deleteError]) {
+            error = nil;
+            store = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:options error:&error];
+        }
+        
+        if (!store) {
+#ifdef DEBUG
+            NSLog(@"Failed to create persistent store: error %@, delete error %@", error, deleteError);
+#endif
+            abort();
+        }
+    }
+    
+    __managedObjectContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
+    [__managedObjectContext setPersistentStoreCoordinator:psc];
+    return __managedObjectContext;
+}
+
+/*
 // Returns the managed object context for the application.
 // If the context doesn't already exist, it is created and bound to the persistent store coordinator for the application.
 - (NSManagedObjectContext *)managedObjectContext
@@ -290,6 +328,7 @@ didLaunchObfsProxy
     
     return __persistentStoreCoordinator;
 }
+ */
 
 - (NSURL *)applicationDocumentsDirectory {
     return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject];

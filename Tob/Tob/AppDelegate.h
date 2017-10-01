@@ -63,8 +63,6 @@
 @property (strong, nonatomic) ObfsWrapper *obfsproxy;
 
 @property (readonly, strong, nonatomic) NSManagedObjectContext *managedObjectContext;
-@property (readonly, strong, nonatomic) NSManagedObjectModel *managedObjectModel;
-@property (readonly, strong, nonatomic) NSPersistentStoreCoordinator *persistentStoreCoordinator;
 
 // either nil (to load regular homepage) or url given by a "tob://" (HTTP)
 // or "tobs://" (HTTPS) callback url -- when this app is started from another app
