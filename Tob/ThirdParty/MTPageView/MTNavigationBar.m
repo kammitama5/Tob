@@ -48,10 +48,10 @@
     [self.cancelButton setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin];
     [self addSubview:self.cancelButton];
     [self.cancelButton sizeToFit];
-    [self.cancelButton setFrame:CGRectMake(self.frame.size.width - self.cancelButton.frame.size.width - kNavBarSideMargin, kNavBarTopDownMargin + [UIApplication sharedApplication].statusBarFrame.size.height, self.cancelButton.frame.size.width, kNavBarMaxHeight - 2 * kNavBarTopDownMargin)];
+    [self.cancelButton setFrame:CGRectMake(self.frame.size.width - self.cancelButton.frame.size.width - kNavBarSideMargin, kNavBarTopDownMargin, self.cancelButton.frame.size.width, kNavBarMaxHeight - 2 * kNavBarTopDownMargin)];
 
     // Use a custom title field for the navigation bar
-    _textField = [[MTTextField alloc] initWithFrame:CGRectMake(kNavBarSideMargin, kNavBarTopDownMargin + [UIApplication sharedApplication].statusBarFrame.size.height, self.frame.size.width - self.cancelButton.frame.size.width - 3 * kNavBarSideMargin, self.frame.size.height - 2 * kNavBarTopDownMargin - [UIApplication sharedApplication].statusBarFrame.size.height)];
+    _textField = [[MTTextField alloc] initWithFrame:CGRectMake(kNavBarSideMargin, kNavBarTopDownMargin + self.statusBarHeight, self.frame.size.width - self.cancelButton.frame.size.width - 3 * kNavBarSideMargin, self.frame.size.height - 2 * kNavBarTopDownMargin - self.statusBarHeight)];
     [self.textField setBackgroundColor:[UIColor whiteColor]];
     [self.textField setClearButtonMode:UITextFieldViewModeWhileEditing];
     [self.textField setDelegate:self];
@@ -88,8 +88,11 @@
 }
 
 - (float)statusBarHeight {
-    // [UIApplication sharedApplication].statusBarFrame.size.height doesn't always give the right height when and orientation just changed
-    if (UIInterfaceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation]) || UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+    // [UIApplication sharedApplication].statusBarFrame.size.height doesn't always give the right height when and orientation just changed or when in call
+    if ([UIApplication sharedApplication].statusBarFrame.size.height >= 40) {
+        // Phone-call bar is displayed
+        return [UIApplication sharedApplication].statusBarFrame.size.height / 2;
+    } else if ((UIInterfaceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation]) || UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)) {
         // Status bar is displayed full height
         return [UIApplication sharedApplication].statusBarFrame.size.height;
     } else {
@@ -122,9 +125,9 @@
     [super setFrame:frame];
     
     if (self.cancelButton.alpha > 0) {
-        [self.textField setFrame:CGRectMake(kNavBarSideMargin, kNavBarTopDownMargin + [UIApplication sharedApplication].statusBarFrame.size.height, self.frame.size.width - self.cancelButton.frame.size.width - 3 * kNavBarSideMargin, self.frame.size.height - 2 * kNavBarTopDownMargin - [UIApplication sharedApplication].statusBarFrame.size.height)];
+        [self.textField setFrame:CGRectMake(kNavBarSideMargin, kNavBarTopDownMargin + self.statusBarHeight, self.frame.size.width - self.cancelButton.frame.size.width - 3 * kNavBarSideMargin, self.frame.size.height - 2 * kNavBarTopDownMargin - self.statusBarHeight)];
     } else {
-        [self.textField setFrame:CGRectMake(kNavBarSideMargin, kNavBarTopDownMargin + [UIApplication sharedApplication].statusBarFrame.size.height, self.frame.size.width - 2 * kNavBarSideMargin, self.frame.size.height - 2 * kNavBarTopDownMargin - [UIApplication sharedApplication].statusBarFrame.size.height)];
+        [self.textField setFrame:CGRectMake(kNavBarSideMargin, kNavBarTopDownMargin + self.statusBarHeight, self.frame.size.width - 2 * kNavBarSideMargin, self.frame.size.height - 2 * kNavBarTopDownMargin - self.statusBarHeight)];
     }
 }
 

@@ -91,7 +91,7 @@
     [self.view insertSubview:self.scrollView belowSubview:self.pageControl];
     
     // Create navigation bar
-    self.navBar = [[MTNavigationBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 44 + [[UIApplication sharedApplication] statusBarFrame].size.height)];
+    self.navBar = [[MTNavigationBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 44)];
     [self.navBar setHidden:YES];
     [self.view addSubview:self.navBar];
     
@@ -207,7 +207,7 @@
         [self updatePageControlFrameForSize:size];
         
         // Reposition navigation bar
-        [self.navBar setFrame:CGRectMake(0, 0, size.width, 44 + [[UIApplication sharedApplication] statusBarFrame].size.height)];
+        [self.navBar setFrame:CGRectMake(0, 0, size.width, self.navBar.maxHeight)];
 
         // Reposition toolbars
         [self.selectedToolbar setFrame:CGRectMake(0, size.height - 44, size.width, 44)];

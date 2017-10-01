@@ -58,7 +58,7 @@
     [self showBarsAnimated:NO];
     
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChange:) name:UIApplicationDidChangeStatusBarOrientationNotification object:nil]; // Status bar orientation is changed to compute navBar's full height so use this notification, not the device orientation change
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(statusBarFrameDidChange:) name:UIApplicationDidChangeStatusBarFrameNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShow:) name:UIKeyboardDidShowNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidHide:) name:UIKeyboardDidHideNotification object:nil];
 }
@@ -72,7 +72,7 @@
     return self.scrollView.frame.size.height;
 }
 
-- (void)deviceOrientationDidChange:(NSNotification *)notification {
+- (void)statusBarFrameDidChange:(NSNotification *)notification {
     // Make sure we update the frame of the bars
     if (areTabsVisible) {
         [self.scrollView setContentInset:UIEdgeInsetsMake(kHeaderViewHeight, 0, 0, 0)];
