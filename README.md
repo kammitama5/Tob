@@ -12,13 +12,14 @@ Features:
 - Access .onion websites ("hidden services" only available with Tor)
 - Change IP address, clear cookies and cache with the press of a button.
 - Disable scripts that could be used to track your network activity.
+- Browse webpages without any ads thanks to a built-in content blocker.
 
 <div>
 	<div>
 			<a href="https://itunes.apple.com/app/id1063151782" style="float: left;"><img border="0" alt="Available on the appstore" src="resources/appstore.png?raw=true" width="149" height="50"></a>
 	</div>	
 	<div style="margin-left:170px">
-		<div style="font-size:1.2em;padding-top:10px"> 400,000+ downloads!</div>
+		<div style="font-size:1.2em;padding-top:10px"> 500,000+ downloads!</div>
 	</div>
 </div>
 
