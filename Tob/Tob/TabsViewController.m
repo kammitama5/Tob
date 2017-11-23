@@ -311,6 +311,9 @@ static const int kNewIdentityMaxTries = 3;
         [self.view bringSubviewToFront:_torDarkBackgroundView];
         [self.view bringSubviewToFront:_torLoadingView];
         [self.view bringSubviewToFront:_torPanelView];
+        
+        if ([[[self contentViews] objectAtIndex:self.currentIndex] needsForceRefresh])
+            [self refreshCurrentTab];
     }
 }
 
@@ -663,6 +666,11 @@ static const int kNewIdentityMaxTries = 3;
             userInput = [@"http://" stringByAppendingString:userInput];
             
         return userInput;
+    }
+    
+    // If the string is just an extension (ex: "com"), it's not a real URL
+    if ([urlEndings containsObject:userInput] || [urlEndings containsObject:[NSString stringWithFormat:@".%@", userInput]]) {
+        return nil;
     }
     
     // Check if it's another type of URL
@@ -1246,10 +1254,13 @@ static const int kNewIdentityMaxTries = 3;
         NSString *searchEngine = [settings valueForKey:@"search-engine"];
         NSDictionary *searchEngineURLs = [NSMutableDictionary dictionaryWithContentsOfFile:[[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"searchEngineURLs.plist"]];
         
+        /*
         if (javascriptEnabled)
             urlString = [[NSString stringWithFormat:[[searchEngineURLs objectForKey:searchEngine] objectForKey:@"search"], textField.text] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
         else
             urlString = [[NSString stringWithFormat:[[searchEngineURLs objectForKey:searchEngine] objectForKey:@"search_no_js"], textField.text] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+        */
+        urlString = [[NSString stringWithFormat:[[searchEngineURLs objectForKey:searchEngine] objectForKey:@"search_no_js"], textField.text] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
         
         if ([urlString hasPrefix:@"https"])
             [(CustomWebView *)_webViewObject updateTLSStatus:TLSSTATUS_SECURE];
