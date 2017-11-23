@@ -42,7 +42,7 @@
 		<true/>
 	</dict>
 	<key>NSAppleMusicUsageDescription</key>
-	<string>The library is used to save images when long-pressing one in a website and chossing &quot;save&quot;</string>
+	<string>The library is used to save images when long-pressing one in a website and choosing &quot;save&quot;</string>
 	<key>NSCameraUsageDescription</key>
 	<string>The camera is used to scan QRCodes in order to add bridges</string>
 	<key>NSPhotoLibraryUsageDescription</key>
