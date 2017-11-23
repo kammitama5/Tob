@@ -108,24 +108,27 @@
         NSURLConnection *con = [NSURLConnection connectionWithRequest:newRequest delegate:self];
         [self setConnection:(CKHTTPConnection *)con]; // lie.
     } else {
-        AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
-        NSMutableDictionary *settings = appDelegate.getSettings;
-        BOOL blockContent = [[settings valueForKey:@"enable-content-blocker"] boolValue];
-        
-        // Check if this request should be blocked
-        if (blockContent && [URLBlocker shouldBlockURL:[[self request] URL] withMainDocumentURL:[[self request] mainDocumentURL]]) {
-#ifdef DEBUG
-            NSLog(@"[ProxyURLProtocol] Blocking request %@", [[self request] URL]);
-#endif
+        dispatch_async(dispatch_get_main_queue(), ^{
+            AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+            NSMutableDictionary *settings = appDelegate.getSettings;
+            BOOL blockContent = [[settings valueForKey:@"enable-content-blocker"] boolValue];
             
-            // Stop this request from continuing
-            [self.client URLProtocol:self didReceiveResponse:[[NSURLResponse alloc] init] cacheStoragePolicy:NSURLCacheStorageNotAllowed];
-            [self.client URLProtocolDidFinishLoading:self];
-            return;
-        }
-        
-        CKHTTPConnection *con = [CKHTTPConnection connectionWithRequest:[self request] delegate:self];
-        [self setConnection:con];
+            // Check if this request should be blocked
+            if (blockContent && [URLBlocker shouldBlockURL:[[self request] URL] withMainDocumentURL:[[self request] mainDocumentURL]]) {
+#ifdef DEBUG
+                NSLog(@"[ProxyURLProtocol] Blocking request %@", [[self request] URL]);
+#endif
+                
+                // Stop this request from continuing
+                [self.client URLProtocol:self didReceiveResponse:[[NSURLResponse alloc] init] cacheStoragePolicy:NSURLCacheStorageNotAllowed];
+                [self.client URLProtocolDidFinishLoading:self];
+                return;
+            }
+            
+            CKHTTPConnection *con = [CKHTTPConnection connectionWithRequest:[self request] delegate:self];
+            [self setConnection:con];
+
+        });
     }
 }
 
