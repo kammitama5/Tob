@@ -812,7 +812,8 @@ void HandleSignal(int signal) {
     if ([d objectForKey:@"bridges"] == nil) {
         // Previous versions of Tob didn't set this option, instead scanning the stored Bridge config.
         NSFetchRequest *request = [[NSFetchRequest alloc] init];
-        NSEntityDescription *entity = [NSEntityDescription entityForName:@"Bridge" inManagedObjectContext:self.managedObjectContext];
+        NSManagedObjectContext *managedContext = [self managedObjectContext];
+        NSEntityDescription *entity = [NSEntityDescription entityForName:@"Bridge" inManagedObjectContext:managedContext];
         [request setEntity:entity];
         
         NSError *error = nil;

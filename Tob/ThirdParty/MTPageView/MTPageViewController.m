@@ -55,7 +55,7 @@
 }
 
 - (void)initializeView {
-    [self.navigationController.navigationBar setHidden:YES];
+    [self.navigationController setNavigationBarHidden:YES];
     [self setAutomaticallyAdjustsScrollViewInsets:NO];
 
     _tabContainers = [[NSMutableArray alloc] init];
