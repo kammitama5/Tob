@@ -37,8 +37,10 @@ connLastAutoIPStack = _connLastAutoIPStack
 
 -(id)init {
     if (self=[super init]) {
-        _torControlPort = (arc4random() % (57343-49153)) + 49153;
-        _torSocksPort = (arc4random() % (65534-57344)) + 57344;
+        // _torControlPort = (arc4random() % (57343-49153)) + 49153;
+        // _torSocksPort = (arc4random() % (65534-57344)) + 57344;
+        _torControlPort = 39060;
+        _torSocksPort = 39050;
         
         _controllerIsAuthenticated = NO;
         _connectionStatus = CONN_STATUS_NONE;

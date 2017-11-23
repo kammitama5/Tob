@@ -24,7 +24,6 @@
 -(void)start {
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     
-    //NSString *base_torrc = [[NSBundle mainBundle] pathForResource:@"torrc" ofType:nil];
     NSString *base_torrc = [[[appDelegate applicationDocumentsDirectory] URLByAppendingPathComponent:@"torrc"] relativePath];
     NSString *geoip = [[NSBundle mainBundle] pathForResource:@"geoip" ofType:nil];
     NSString *geoip6 = [[NSBundle mainBundle] pathForResource:@"geoip6" ofType:nil];
@@ -41,6 +40,41 @@
     //conf.dataDirectory = [NSURL fileURLWithPath:NSTemporaryDirectory()];
     conf.dataDirectory = [[[appDelegate applicationLibraryDirectory] URLByAppendingPathComponent:@"Caches" isDirectory:YES] URLByAppendingPathComponent:@"tor" isDirectory:YES];
     
+    
+    /*
+     configuration.arguments = [
+     "--ignore-missing-torrc",
+     "--clientonly", "1",
+     "--socksport", "39050",
+     "--controlport", "127.0.0.1:39060",
+     //"--log", "notice stdout",
+     "--log", "notice file /dev/null",
+     "--clientuseipv4", "1",
+     "--clientuseipv6", "1",
+     "--ClientPreferIPv6ORPort", "auto",
+     "--ClientPreferIPv6DirPort", "auto",
+     "--ClientTransportPlugin", "obfs4 socks5 127.0.0.1:47351",
+     "--ClientTransportPlugin", "meek_lite socks5 127.0.0.1:47352",
+     ]
+     */
+    
+    conf.arguments = [NSArray arrayWithObjects:
+                      @"-f", base_torrc,
+                      @"--clientonly", @"1",
+                      @"--socksport", socksPortStr,
+                      @"--controlport", controlPortStr,
+                      @"--log", @"notice file /dev/null",
+                      @"--geoipfile", geoip,
+                      @"--geoipv6file", geoip6,
+                      @"--clientuseipv4", @"1",
+                      @"--clientuseipv6", @"1",
+                      @"--ClientPreferIPv6ORPort", @"auto",
+                      @"--ClientPreferIPv6DirPort", @"auto",
+                      @"--ClientTransportPlugin", @"obfs4 socks5 127.0.0.1:47351",
+                      @"--ClientTransportPlugin", @"meek_lite socks5 127.0.0.1:47352",
+                      nil];
+    
+    /*
     conf.arguments = [NSArray arrayWithObjects:
                       @"--controlport", controlPortStr,
                       @"--socksport", socksPortStr,
@@ -55,6 +89,7 @@
 #endif
                       @"-f", base_torrc,
                       nil];
+     */
     
     /*
     conf.arguments = [NSArray arrayWithObjects:
