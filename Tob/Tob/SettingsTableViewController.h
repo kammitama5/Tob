@@ -11,6 +11,8 @@
 @interface SettingsTableViewController : UITableViewController <UITableViewDataSource, UITableViewDelegate, UIAlertViewDelegate>
 
 @property (nonatomic, retain) UIBarButtonItem *backButton;
+@property (nonatomic) BOOL tabsNeedsRefresh;
+
 - (void)goBack;
 
 @end

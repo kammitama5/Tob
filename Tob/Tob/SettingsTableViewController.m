@@ -30,7 +30,7 @@
     self.navigationItem.rightBarButtonItem = backButton;
     self.navigationItem.title = NSLocalizedString(@"Settings", nil);
     
-    if([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
+    if ([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
         self.tableView.cellLayoutMarginsFollowReadableWidth = NO;
     }
 }
@@ -44,6 +44,15 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self.tableView reloadData];
+    self.tabsNeedsRefresh = NO;
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    if (self.tabsNeedsRefresh) {
+        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+        [[appDelegate tabsViewController] setTabsNeedForceRefresh:YES];
+        self.tabsNeedsRefresh = NO;
+    }
 }
 
 - (void)goBack {
@@ -557,6 +566,8 @@
         [settings setObject:[NSNumber numberWithInteger:JS_NO_PREFERENCE] forKey:@"javascript-toggle"];
         [appDelegate saveSettings:settings];
     }
+    
+    self.tabsNeedsRefresh = YES;
 }
 
 - (void)enableContentBlockerSwitchChanged:(id)sender {
@@ -566,6 +577,8 @@
     NSMutableDictionary *settings = appDelegate.getSettings;
     [settings setObject:[NSNumber numberWithBool:switchControl.on] forKey:@"enable-content-blocker"];
     [appDelegate saveSettings:settings];
+    
+    self.tabsNeedsRefresh = YES;
 }
 
 @end
@@ -588,7 +601,7 @@
     
     self.navigationItem.title = NSLocalizedString(@"Search engine", nil);
     
-    if([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
+    if ([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
         self.tableView.cellLayoutMarginsFollowReadableWidth = NO;
     }
 }
@@ -743,7 +756,7 @@
     
     self.navigationItem.title = NSLocalizedString(@"Cookies", nil);
     
-    if([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
+    if ([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
         self.tableView.cellLayoutMarginsFollowReadableWidth = NO;
     }
 }
@@ -876,7 +889,7 @@
     
     self.navigationItem.title = NSLocalizedString(@"User-Agent", nil);
     
-    if([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
+    if ([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
         self.tableView.cellLayoutMarginsFollowReadableWidth = NO;
     }
 }
@@ -1012,7 +1025,7 @@
     
     self.navigationItem.title = NSLocalizedString(@"Active content", nil);
     
-    if([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
+    if ([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
         self.tableView.cellLayoutMarginsFollowReadableWidth = NO;
     }
 }
@@ -1084,7 +1097,6 @@
     
     [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:_currentRow inSection:indexPath.section]].accessoryType = UITableViewCellAccessoryNone;
     [tableView cellForRowAtIndexPath:indexPath].accessoryType = UITableViewCellAccessoryCheckmark;
-    _currentRow = (int)indexPath.row;
     
     if (indexPath.row == 0) {
         [settings setObject:[NSNumber numberWithInteger:CONTENTPOLICY_PERMISSIVE] forKey:@"javascript"];
@@ -1093,9 +1105,15 @@
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Security Warning", nil) message:NSLocalizedString(@"The 'Allow All' setting is UNSAFE and only recommended if a trusted site requires Ajax or WebSockets.\n\nWebSocket requests happen outside of Tor and will unmask your real IP address.", nil) preferredStyle:UIAlertControllerStyleAlert];
         [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"OK", nil) style:UIAlertActionStyleCancel handler:nil]];
         [self presentViewController:alert animated:YES completion:NULL];
+        
+        if (_currentRow != (int)indexPath.row)
+            [(SettingsTableViewController *)self.navigationController.parentViewController setTabsNeedsRefresh:YES];
     } else if (indexPath.row == 1) {
         [settings setObject:[NSNumber numberWithInteger:CONTENTPOLICY_BLOCK_CONNECT] forKey:@"javascript"];
         [appDelegate saveSettings:settings];
+        
+        if (_currentRow != (int)indexPath.row)
+            [(SettingsTableViewController *)self.navigationController.parentViewController setTabsNeedsRefresh:YES];
     } else if (indexPath.row == 2) {
         [settings setObject:[NSNumber numberWithInteger:CONTENTPOLICY_STRICT] forKey:@"javascript"];
         [appDelegate saveSettings:settings];
@@ -1103,8 +1121,12 @@
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Experimental Feature", nil) message:NSLocalizedString(@"Blocking all active content is an experimental feature.\n\nDisabling active content makes it harder for websites to identify your device, but websites will be able to tell that you are blocking scripts. This may be identifying information if you are the only user that blocks scripts.\n\nSome websites may not work if active content is blocked.\n\nBlocking may cause Tob to crash when loading script-heavy websites.", nil) preferredStyle:UIAlertControllerStyleAlert];
         [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"OK", nil) style:UIAlertActionStyleCancel handler:nil]];
         [self presentViewController:alert animated:YES completion:NULL];
+        
+        if (_currentRow != (int)indexPath.row)
+            [(SettingsTableViewController *)self.navigationController.parentViewController setTabsNeedsRefresh:YES];
     }
     
+    _currentRow = (int)indexPath.row;
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
@@ -1128,7 +1150,7 @@
     
     self.navigationItem.title = NSLocalizedString(@"Minimum SSL/TLS protocol", nil);
     
-    if([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
+    if ([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
         self.tableView.cellLayoutMarginsFollowReadableWidth = NO;
     }
 }
@@ -1236,7 +1258,7 @@
     
     self.navigationItem.title = NSLocalizedString(@"IPv4/IPv6", nil);
     
-    if([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
+    if ([self.tableView respondsToSelector:@selector(setCellLayoutMarginsFollowReadableWidth:)]) {
         self.tableView.cellLayoutMarginsFollowReadableWidth = NO;
     }
 }
