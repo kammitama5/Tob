@@ -542,7 +542,8 @@ void HandleSignal(int signal) {
 
 -(NSUInteger)numBridgesConfigured {
     NSFetchRequest *request = [[NSFetchRequest alloc] init];
-    NSEntityDescription *entity = [NSEntityDescription entityForName:@"Bridge" inManagedObjectContext:self.managedObjectContext];
+    NSManagedObjectContext *managedContext = [self managedObjectContext];
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"Bridge" inManagedObjectContext:managedContext];
     [request setEntity:entity];
     
     NSError *error = nil;
@@ -611,7 +612,8 @@ void HandleSignal(int signal) {
     
     
     NSFetchRequest *request = [[NSFetchRequest alloc] init];
-    NSEntityDescription *entity = [NSEntityDescription entityForName:@"Bridge" inManagedObjectContext:self.managedObjectContext];
+    NSManagedObjectContext *managedContext = [self managedObjectContext];
+    NSEntityDescription *entity = [NSEntityDescription entityForName:@"Bridge" inManagedObjectContext:managedContext];
     [request setEntity:entity];
     
     error = nil;

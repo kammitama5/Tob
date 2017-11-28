@@ -48,6 +48,8 @@
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    
     if (self.tabsNeedsRefresh) {
         AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         [[appDelegate tabsViewController] setTabsNeedForceRefresh:YES];
