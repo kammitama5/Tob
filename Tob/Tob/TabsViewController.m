@@ -41,7 +41,6 @@ static const int kNewIdentityMaxTries = 3;
     
     // Web
     UIWebView *_webViewObject;
-    UIProgressView *_progressView;
     
     // Nav bar
     WebTextField *_addressTextField;
@@ -102,15 +101,7 @@ static const int kNewIdentityMaxTries = 3;
     [_addressTextField setDelegate:self];
     [_addressTextField setAutoresizingMask:UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleWidth];
     
-    _progressView = [[UIProgressView alloc] init];
-    [self.view addSubview:_progressView];
-    
-    UINavigationBar *navBar = self.navBar;
-    [[self view] addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[navBar]-[_progressView(2@20)]" options:NSLayoutFormatDirectionLeadingToTrailing metrics:nil views:NSDictionaryOfVariableBindings(_progressView, navBar)]];
-    [[self view] addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_progressView]|" options:NSLayoutFormatDirectionLeadingToTrailing metrics:nil views:NSDictionaryOfVariableBindings(_progressView)]];
-    
-    [_progressView setTranslatesAutoresizingMaskIntoConstraints:NO];
-    [_progressView setProgress:0.0f animated:NO];
+    [self.navBar.progressView setProgress:0.0f animated:NO];
     [self hideProgressBarAnimated:NO];
     
     // Add a "close all" button to the deselected toolbar
@@ -197,6 +188,7 @@ static const int kNewIdentityMaxTries = 3;
         _addressTextField.stopButton.tintColor = [UIColor blackColor];
         _addressTextField.refreshButton.tintColor = [UIColor blackColor];
         _addressTextField.layer.borderColor = [UIColor colorWithWhite:0.8 alpha:1.0].CGColor;
+        [_addressTextField setNeedsDisplay];
         
         // Use custom colors for the page control (to make it more visible)
         self.pageControl.tintColor = [UIColor darkGrayColor];
@@ -204,10 +196,11 @@ static const int kNewIdentityMaxTries = 3;
         self.pageControl.currentPageIndicatorTintColor = [UIColor grayColor];
         
         // Use a custom appearence for the navigation bar
-        [self.navBar setBarTintColor:[UIColor groupTableViewBackgroundColor]];
+        [self.navBar setBackgroundColor:[UIColor groupTableViewBackgroundColor]];
+        [self.navBar setTintColor:self.view.tintColor];
         
-        _progressView.trackTintColor = [UIColor colorWithRed:0.90 green:0.90 blue:0.92 alpha:1.0];
-        _progressView.progressTintColor = self.view.tintColor;
+        self.navBar.progressView.trackTintColor = [UIColor colorWithRed:0.90 green:0.90 blue:0.92 alpha:1.0];
+        self.navBar.progressView.progressTintColor = self.view.tintColor;
         _torProgressView.trackTintColor = [UIColor colorWithRed:0.80 green:0.80 blue:0.82 alpha:1.0];;
         _torProgressView.progressTintColor = self.view.tintColor;
         
@@ -247,15 +240,17 @@ static const int kNewIdentityMaxTries = 3;
         _addressTextField.stopButton.tintColor = [UIColor whiteColor];
         _addressTextField.refreshButton.tintColor = [UIColor whiteColor];
         _addressTextField.layer.borderColor = [UIColor colorWithWhite:0.75 alpha:1.0].CGColor;
+        [_addressTextField setNeedsDisplay];
 
         self.pageControl.tintColor = [UIColor whiteColor];
         self.pageControl.pageIndicatorTintColor = [UIColor colorWithRed:0.8 green:0.8 blue:0.8 alpha:1.0];
         self.pageControl.currentPageIndicatorTintColor = [UIColor whiteColor];
         
-        [self.navBar setBarTintColor:[UIColor darkGrayColor]];
+        [self.navBar setBackgroundColor:[UIColor darkGrayColor]];
+        [self.navBar setTintColor:[UIColor whiteColor]];
         
-        _progressView.trackTintColor = [UIColor lightGrayColor];
-        _progressView.progressTintColor = [UIColor whiteColor];
+        self.navBar.progressView.trackTintColor = [UIColor lightGrayColor];
+        self.navBar.progressView.progressTintColor = [UIColor whiteColor];
         _torProgressView.trackTintColor = [UIColor grayColor];
         _torProgressView.progressTintColor = [UIColor whiteColor];
         
@@ -326,14 +321,15 @@ static const int kNewIdentityMaxTries = 3;
     [super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
     
     [coordinator animateAlongsideTransition:^(id<UIViewControllerTransitionCoordinatorContext> context) {
-        _torDarkBackgroundView.frame = CGRectMake(0, 0, size.width, size.height);
-        _torLoadingView.center = CGPointMake(size.width / 2, size.height / 2);
-        _torPanelView.center = CGPointMake(size.width / 2, size.height / 2);
+        [_torDarkBackgroundView setFrame:CGRectMake(0, 0, size.width, size.height)];
+        [_torLoadingView setCenter:CGPointMake(size.width / 2, size.height / 2)];
+        [_torPanelView setCenter:CGPointMake(size.width / 2, size.height / 2)];
+        
         [self.view bringSubviewToFront:_torDarkBackgroundView];
         [self.view bringSubviewToFront:_torLoadingView];
         [self.view bringSubviewToFront:_torPanelView];
         
-        _bookmarks.view.frame = CGRectMake(0, [[UIApplication sharedApplication] statusBarFrame].size.height + 44, size.width, size.height - ([[UIApplication sharedApplication] statusBarFrame].size.height + 44));
+        [_bookmarks.view setFrame:CGRectMake(0, [[UIApplication sharedApplication] statusBarFrame].size.height + 44, size.width, size.height - ([[UIApplication sharedApplication] statusBarFrame].size.height + 44))];
     } completion:nil];
 }
 
@@ -502,25 +498,25 @@ static const int kNewIdentityMaxTries = 3;
 }
 
 - (void)updateProgress:(float)progress animated:(BOOL)animated {
-    [_progressView setProgress:progress animated:animated];
+    [self.navBar.progressView setProgress:progress animated:animated];
 }
 
 - (void)showProgressBarAnimated:(BOOL)animated {
     if (animated)
         [UIView animateWithDuration:0.2 animations:^{
-            [_progressView setAlpha:1.0f];
+            [self.navBar.progressView setAlpha:1.0f];
         }];
     else
-        [_progressView setAlpha:1.0f];
+        [self.navBar.progressView setAlpha:1.0f];
 }
 
 - (void)hideProgressBarAnimated:(BOOL)animated {
     if (animated)
         [UIView animateWithDuration:0.2 animations:^{
-            [_progressView setAlpha:0.0f];
+            [self.navBar.progressView setAlpha:0.0f];
         }];
     else
-        [_progressView setAlpha:0.0f];
+        [self.navBar.progressView setAlpha:0.0f];
 }
 
 - (void)prePopulateBookmarks {
@@ -1242,14 +1238,17 @@ static const int kNewIdentityMaxTries = 3;
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
         [_webViewObject loadRequest:request];
     } else if (textField.text.length > 0) {
-        BOOL javascriptEnabled = true;
         AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         NSMutableDictionary *settings = appDelegate.getSettings;
+
+        /*
+        BOOL javascriptEnabled = true;
         NSInteger js_setting = [[settings valueForKey:@"javascript-toggle"] integerValue];
         NSInteger csp_setting = [[settings valueForKey:@"javascript"] integerValue];
         
         if (csp_setting == CONTENTPOLICY_STRICT || js_setting == JS_BLOCKED)
             javascriptEnabled = false;
+        */
         
         NSString *searchEngine = [settings valueForKey:@"search-engine"];
         NSDictionary *searchEngineURLs = [NSMutableDictionary dictionaryWithContentsOfFile:[[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"searchEngineURLs.plist"]];
@@ -1345,7 +1344,7 @@ static const int kNewIdentityMaxTries = 3;
     }
     
     [_webViewObject.scrollView setScrollsToTop:NO];
-    _progressView.hidden = YES;
+    self.navBar.progressView.hidden = YES;
 }
 
 - (void)tabsWillBecomeHidden {
@@ -1379,25 +1378,25 @@ static const int kNewIdentityMaxTries = 3;
     [[[self.contentViews objectAtIndex:self.currentIndex] scrollView] flashScrollIndicators];
     
     _webViewObject = [self.contentViews objectAtIndex:self.currentIndex];
-    _progressView.hidden = NO;
+    self.navBar.progressView.hidden = NO;
     [_webViewObject.scrollView setScrollsToTop:YES];
-    [_progressView setProgress:[(CustomWebView *)_webViewObject progress]];
+    [self.navBar.progressView setProgress:[(CustomWebView *)_webViewObject progress]];
     [self.navBar.textField setText:[[(CustomWebView *)_webViewObject url] absoluteString]];
     
     UIButton *refreshStopButton = _webViewObject.isLoading ? _addressTextField.stopButton : _addressTextField.refreshButton;
     _addressTextField.rightView = refreshStopButton;
     
     if ([(CustomWebView *)_webViewObject progress] == 1.0f) {
-        _progressView.alpha = 0.0f; // Done loading for this page, don't show the progress
+        self.navBar.progressView.alpha = 0.0f; // Done loading for this page, don't show the progress
     } else {
-        _progressView.alpha = 1.0f;
+        self.navBar.progressView.alpha = 1.0f;
     }
     
     if ([[_addressTextField text] isEqualToString:@""] && ![_webViewObject isLoading]) {
         if (!_torLoadingView) {
             [_addressTextField becomeFirstResponder];
         }
-        _progressView.alpha = 0.0f;
+        self.navBar.progressView.alpha = 0.0f;
     }
     
     NSURL *url = [(CustomWebView *)_webViewObject url];

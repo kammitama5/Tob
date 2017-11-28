@@ -9,6 +9,9 @@
 #import "MTPageViewController.h"
 #import <UIKit/UIKit.h>
 
+@class MTPageViewController;
+@class MTPageViewContainer;
+
 /*!
  * @typedef MTPanDirection
  * @brief A list of pan directions.
@@ -33,9 +36,6 @@ static const CGFloat kMovedAlpha = 0.6f;
 static const CGFloat kDraggedAlpha = 0.8f;
 static const CGFloat kDragMinFractionBeforeScroll = 0.1f;
 static const CGFloat kSwitchGestureEdgeSize = 80.0f;
-
-@class MTPageViewController;
-@class MTPageViewContainer;
 
 @interface MTScrollView : UIScrollView {
     MTPageViewContainer *draggedContainer; // The container that the user long-pressed and that is scrolling

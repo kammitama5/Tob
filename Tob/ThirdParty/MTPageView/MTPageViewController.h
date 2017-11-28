@@ -9,7 +9,13 @@
 #import "MTPageViewTab.h"
 #import "MTPageViewContainer.h"
 #import "MTScrollView.h"
+#import "MTTextField.h"
 #import <UIKit/UIKit.h>
+
+@class MTScrollView;
+@class MTNavigationBar;
+@class MTPageViewContainer;
+@class MTPageViewTab;
 
 static const CGFloat kPortraitSizeFactor = 0.75f;
 static const CGFloat kLandscapeSizeFactor = 0.7f;
@@ -25,9 +31,6 @@ static const CGFloat kMaxTabScrollAnimationDuration = 1.0f;
 
 static const CGFloat kPageControlDotRadius = 3.5f;
 static const CGFloat kPageControlDotSpacing = 9.0f;
-
-@class MTPageViewContainer;
-@class MTScrollView;
 
 @interface MTPageViewController : UIViewController <UIScrollViewDelegate> {
     UIBarButtonItem *addTabButton;
@@ -146,6 +149,11 @@ static const CGFloat kPageControlDotSpacing = 9.0f;
  * Closes the currently selected tab.
  */
 - (void)closeCurrentTab;
+
+/**
+ * Closes the currently selected tab and selects the next one (if there is any).
+ */
+- (void)closeCurrentTabAndSelectNext;
 
 /**
  * Closes all the tabs.

@@ -10,6 +10,7 @@
 #import "AppDelegate.h"
 #import "JFMinimalNotification.h"
 #import "iRate.h"
+#import "MTTextField.h"
 #import <objc/runtime.h>
 
 #define ALERTVIEW_SSL_WARNING 1

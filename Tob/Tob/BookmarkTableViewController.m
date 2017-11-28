@@ -10,6 +10,7 @@
 #import "Bookmark.h"
 #import "BookmarkEditViewController.h"
 #import "AppDelegate.h"
+#import "MTTextField.h"
 
 @interface BookmarkTableViewController ()
 

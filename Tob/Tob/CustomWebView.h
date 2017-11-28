@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "TabsViewController.h"
 #import <QuartzCore/QuartzCore.h>
+
 @class TabsViewController;
 
 @interface CustomWebView : UIWebView <UIWebViewDelegate, UIAlertViewDelegate, UIGestureRecognizerDelegate> {

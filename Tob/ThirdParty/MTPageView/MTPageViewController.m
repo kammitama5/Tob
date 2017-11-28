@@ -92,6 +92,7 @@
     
     // Create navigation bar
     self.navBar = [[MTNavigationBar alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, 44)];
+    [self.navBar setParent:self];
     [self.navBar setHidden:YES];
     [self.view addSubview:self.navBar];
     
@@ -740,6 +741,14 @@
 
 - (void)closeCurrentTab {
     [self closeTabAtIndex:self.currentIndex];
+}
+
+- (void)closeCurrentTabAndSelectNext {
+    [self closeTabAtIndex:self.currentIndex animated:YES completion:^(BOOL finished) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kDefaultTabScrollAnimationDuration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self hideTabs];
+        });
+    }];
 }
 
 - (void)closeAllTabs {

@@ -9,6 +9,8 @@
 #import "MTScrollBarManager.h"
 #import <UIKit/UIKit.h>
 
+@class MTScrollBarManager;
+
 @interface MTPageViewTab : UIView
 
 @property (nonatomic) int index;

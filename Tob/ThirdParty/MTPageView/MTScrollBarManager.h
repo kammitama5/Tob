@@ -11,17 +11,21 @@
 
 static const CGFloat kMinScrollBeforeShowingBar = 4.0f;
 static const CGFloat kBarsAnimationDuration = 0.1f;
+static const CGFloat kNavBarShortcutsHideAnimationDuration = 0.2f;
 
-@interface MTScrollBarManager : UIView <UIScrollViewDelegate, UITextFieldDelegate> {
+@class MTNavigationBar;
+
+@interface MTScrollBarManager : UIView <UIScrollViewDelegate, UITextFieldDelegate, UIGestureRecognizerDelegate> {
+    UIPanGestureRecognizer *_shortcutPanRecognizer;
     CGPoint lastOffset;
     BOOL isDragging;
+    BOOL isPinching;
     BOOL areTabsVisible;
 }
 
 @property (nonatomic, strong) UIToolbar *toolbar;
 @property (nonatomic, strong) MTNavigationBar *navBar;
 @property (nonatomic, strong) UIScrollView *scrollView;
-@property (nonatomic, strong) UIView *displayedView;
 @property (nonatomic, readonly) BOOL areBarsHidden;
 
 - (id)initWithNavBar:(MTNavigationBar *)navBar andToolBar:(UIToolbar *)toolBar andScrollView:(UIScrollView *)scrollView;

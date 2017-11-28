@@ -11,6 +11,9 @@
 #import "MTGradiantAlphaView.h"
 #import <UIKit/UIKit.h>
 
+@class MTPageViewController;
+@class MTPageViewTab;
+
 static const CGFloat kArrowViewAlpha = 0.7;
 static const CGFloat kArrowViewMargin = 10;
 static const CGFloat kArrowViewHeight = 50;
@@ -18,8 +21,6 @@ static const CGFloat kHeaderViewHeight = 25;
 static const CGFloat kHeaderFontSize = 15.0;
 static const CGFloat kShadowSize = 5;
 static const CGFloat kShadowAlpha = 0.4;
-
-@class MTPageViewController;
 
 @interface MTPageViewContainer : UIView {
     UIButton *removeButton;

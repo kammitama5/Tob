@@ -48,15 +48,29 @@
 - (void)setFrame:(CGRect)frame {
     [super setFrame:frame];
     
-    float advancement = (frame.size.height - kMinTextFieldHeight) / ([self maxHeight] - kMinTextFieldHeight);
+    float alpha = 1.0f;
+    
+    if (frame.size.height <= [self maxHeight]) {
+        // Navigation bar is being hidden
+        alpha = (frame.size.height - kMinTextFieldHeight) / ([self maxHeight] - kMinTextFieldHeight);
+    } else {
+        // Shortcuts are being shown
+        alpha = 1 - (frame.size.height - [self maxHeight]) / ([self transitionHeight] - [self maxHeight]);
+    }
+    
+    alpha = MAX(0, MIN(1, alpha));
     
     if (!self.isFirstResponder) {
-        [self setAlpha:advancement];
+        [self setAlpha:alpha];
     }
 }
 
 - (float)maxHeight {
-    return [(MTNavigationBar *)self.superview maxHeight] - 2 * kNavBarTopDownMargin - [UIApplication sharedApplication].statusBarFrame.size.height;
+    return [(MTNavigationBar *)self.superview maxHeight] - 2 * kNavBarTopDownMargin - [(MTNavigationBar *)self.superview statusBarHeight];
+}
+
+- (float)transitionHeight {
+    return [(MTNavigationBar *)self.superview shortcutBeginAppearingHeight] - 2 * kNavBarTopDownMargin - [(MTNavigationBar *)self.superview statusBarHeight];
 }
 
 - (void)restoreSavedText {

@@ -10,17 +10,17 @@
 #import "MTPageViewController.h"
 #import "CustomWebView.h"
 
+@class CustomWebView;
+
 #define TLSSTATUS_HIDDEN 0
 #define TLSSTATUS_SECURE 1
 #define TLSSTATUS_INSECURE 2
 
 extern const char AlertViewExternProtoUrl;
 extern const char AlertViewIncomingUrl;
-@class CustomWebView;
 
 @interface TabsViewController : MTPageViewController <UITextFieldDelegate, UIActionSheetDelegate>
 
-@property (nonatomic, strong) UIProgressView *progressView;
 @property (nonatomic, strong) NSString *IPAddress;
 @property (nonatomic) int newIdentityNumber; // An integer containing the current identity number, to avoid showing the wrong IP
 
