@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #import "Ipv6Tester.h"
+#import "AppDelegate.h"
 #include <sys/socket.h>
 #include <netdb.h>
 #import <ifaddrs.h>
@@ -20,16 +21,17 @@
 	if (reach.currentReachabilityStatus != NotReachable) {
 		Boolean haveNonLocalIpv4 = NO;
 		Boolean haveNonLocalIpv6 = NO;
+        NSString *ipv4addr;
+        NSString *ipv6addr;
 
 		NSDictionary *ipv4addrs = [Ipv6Tester addressesForProtocol:4];
 		for(NSString *iface in ipv4addrs) {
 			NSString *addr = (NSString *)[ipv4addrs objectForKey:iface];
-			//NSLog(@"%@: %@", iface, addr);
 			if ([iface hasPrefix:@"en"] || [iface hasPrefix:@"pdp_ip"]) {
 				// TODO better logic for non-public, non-valid IPv4 addresses
 				if (![addr hasPrefix:@"127."] && ![addr hasPrefix:@"0."] && ![addr hasPrefix:@"169.254."] && ![addr hasPrefix:@"255."]) {
 					haveNonLocalIpv4 = YES;
-					//NSLog(@"OK");
+                    ipv4addr = addr;
 					break;
 				}
 			}
@@ -38,16 +40,28 @@
 		NSDictionary *ipv6addrs = [Ipv6Tester addressesForProtocol:6];
 		for(NSString *iface in ipv6addrs) {
 			NSString *addr = (NSString *)[ipv6addrs objectForKey:iface];
-			//NSLog(@"%@: %@", iface, addr);
 			if ([iface hasPrefix:@"en"] || [iface hasPrefix:@"pdp_ip"]) {
 				// TODO better logic for non-public, non-valid IPv6 addresses
 				if (![addr hasPrefix:@"fe80:"]) {
 					haveNonLocalIpv6 = YES;
-					//NSLog(@"OK");
+                    ipv6addr = addr;
 					break;
 				}
 			}
 		}
+        
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+            if (haveNonLocalIpv4 && haveNonLocalIpv6) {
+                [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"[IPTester] Found an IPv4 address (%@) and an IPv6 address (%@)", ipv4addr, ipv6addr]];
+            } else if (!haveNonLocalIpv4 && haveNonLocalIpv6) {
+                [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"[IPTester] Found only an IPv6 address (%@)", ipv6addr]];
+            } else {
+                [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"[IPTester] Found only an IPv4 address (%@)", ipv4addr]];
+            }
+        });
+        
 		if (haveNonLocalIpv4 && haveNonLocalIpv6) {
 			return TOR_IPV6_CONN_DUAL;
 		} else if (!haveNonLocalIpv4 && haveNonLocalIpv6) {
