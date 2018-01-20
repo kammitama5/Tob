@@ -1362,6 +1362,19 @@
     }
     
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+    NSString *msg = NSLocalizedString(@"You may need to quit the app and restart it to change the connection method.\n\n(If you restart and the app stays stuck at \"Connecting...\", please come back and double-check your IP configuration).", nil);
+    
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Setting saved", nil) message:msg preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"Continue anyway", nil) style:UIAlertActionStyleCancel handler:nil]];
+    UIAlertAction *restartAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Restart app", nil) style:UIAlertActionStyleDestructive handler:^(UIAlertAction *action) {
+        [appDelegate wipeAppData];
+        exit(0);
+    }];
+    
+    [alert addAction:restartAction];
+    [alert setPreferredAction:restartAction];
+    [self presentViewController:alert animated:YES completion:NULL];
 }
 
 @end

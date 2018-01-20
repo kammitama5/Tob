@@ -130,6 +130,8 @@
 "Automatic IPv4/IPv6" = "Détection automatique";
 "Always use IPv4" = "Utiliser IPv4 seulement";
 "Always use IPv6" = "Utiliser IPv6 seulement";
+"Setting saved" = "Réglage enregistré";
+"You may need to quit the app and restart it to change the connection method.\n\n(If you restart and the app stays stuck at \"Connecting...\", please come back and double-check your IP configuration)." = "Vous risquez de devoir relancer l'application pour changer la méthode de connexion.\n\n(Si vous relancez et que l'application reste bloquée dans la phase \"Connecting...\", veuillez vérifier votre configuration).";
 "This is an advanced setting and should only be modified if you know what you are doing and if you have unusual network needs." = "Ceci est un  paramètre avancé ; il ne doit être utilisé qu'en cas de besoins inhabituels réseau.";
 "\n\nCurrent autodetect state: " = "\n\nÉtat détecté actuellement : ";
 "IPv6-only detected" = "IPv6 uniquement";

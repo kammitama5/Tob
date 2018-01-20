@@ -130,6 +130,8 @@
 "Automatic IPv4/IPv6" = "Automatic IPv4/IPv6";
 "Always use IPv4" = "Always use IPv4";
 "Always use IPv6" = "Always use IPv6";
+"Setting saved" = "Setting saved";
+"You may need to quit the app and restart it to change the connection method.\n\n(If you restart and the app stays stuck at \"Connecting...\", please come back and double-check your IP configuration)." = "You may need to quit the app and restart it to change the connection method.\n\n(If you restart and the app stays stuck at \"Connecting...\", please come back and double-check your IP configuration).";
 "This is an advanced setting and should only be modified if you know what you are doing and if you have unusual network needs." = "This is an advanced setting and should only be modified if you know what you are doing and if you have unusual network needs.";
 "\n\nCurrent autodetect state: " = "\n\nCurrent autodetect state: ";
 "IPv6-only detected" = "IPv6-only detected";
