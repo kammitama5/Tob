@@ -359,6 +359,12 @@ connLastAutoIPStack = _connLastAutoIPStack
         // Response to "getinfo status/bootstrap-phase"
         AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         
+        if ([msgIn rangeOfString:@"250-status/bootstrap-phase=WARN"].location != NSNotFound) {
+            _connectionStatus = CONN_STATUS_NONE;
+            [self warnUserWithString:msgIn];
+            return;
+        }
+        
         if ([msgIn rangeOfString:@"BOOTSTRAP PROGRESS=100"].location != NSNotFound) {
             _connectionStatus = CONN_STATUS_CONNECTED;
         }
@@ -424,10 +430,6 @@ connLastAutoIPStack = _connLastAutoIPStack
     } else if ([msgIn rangeOfString:@"circuit-status="].location != NSNotFound) {
         NSMutableArray *guards = [[msgIn componentsSeparatedByString: @"\r\n"] mutableCopy];
         
-#ifdef DEBUG
-        NSLog(@"circuit-status guards: %@", guards);
-#endif
-        
         if ([guards count] > 1) {
             // If the value is correct, the first object should be "250+entry-guards="
             // The next ones should be "$<ID>~<NAME> <STATUS>"
@@ -439,7 +441,7 @@ connLastAutoIPStack = _connLastAutoIPStack
             for (__strong NSString *circuitInfo in guards) {
                 NSMutableArray<TorNode *> *currentNodes = [[NSMutableArray alloc] init];
                 
-                // Format should be "<ID> <STATUS> <NODES> BUILD_FLAGS=<FLAGS> PURPOSE=<PURPOSE> TIME_CREATED=<ISO8601_TIME>"
+                // Format should be "<ID> <STATUS> <LIST_OF_NODES> BUILD_FLAGS=<FLAGS> PURPOSE=<PURPOSE> TIME_CREATED=<ISO8601_TIME>"
                 NSArray *info = [circuitInfo componentsSeparatedByString:@" "]; // Infos are separated by spaces
                 
                 // If there isn't enough info, this isn't a circuit
@@ -529,7 +531,7 @@ connLastAutoIPStack = _connLastAutoIPStack
                     }
                 }
                 
-                if ([correspondingNodes count] <= 2)
+                if ([correspondingNodes count] == 0)
                     return; // We don't care about this node since it's not in self.currentNodes
                 
                 /* Extract the node's name and IP */
@@ -545,7 +547,6 @@ connLastAutoIPStack = _connLastAutoIPStack
                 for (TorNode *node in correspondingNodes) {
                     [node setName:nodeName];
                     [node setIP:nodeIP];
-
                 }
                 
                 // Find the node's country
@@ -639,6 +640,62 @@ connLastAutoIPStack = _connLastAutoIPStack
     [formatter setLocale:posix];
     
     return [formatter dateFromString:date];
+}
+
+- (void)warnUserWithString:(NSString *)warnMessage {
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    TabsViewController *tvc = appDelegate.tabsViewController;
+    
+    NSRange warning_loc = [warnMessage rangeOfString:@"WARNING="];
+    NSString *warning_str = @"";
+    if (warning_loc.location != NSNotFound)
+        warning_str = [warnMessage substringFromIndex:warning_loc.location + warning_loc.length + 1];
+    NSRange warning_loc2 = [warning_str rangeOfString:@"\""];
+    if (warning_loc2.location != NSNotFound)
+        warning_str = [warning_str substringToIndex:warning_loc2.location];
+    
+    NSRange host_loc = [warnMessage rangeOfString:@"HOSTADDR="];
+    NSString *host_str = @"";
+    if (host_loc.location != NSNotFound)
+        host_str = [warnMessage substringFromIndex:host_loc.location + host_loc.length + 1];
+    NSRange host_loc2 = [host_str rangeOfString:@"\""];
+    if (host_loc2.location != NSNotFound)
+        host_str = [host_str substringToIndex:host_loc2.location];
+    
+    NSRange hostid_loc = [warnMessage rangeOfString:@"HOSTID="];
+    NSString *hostid_str = @"";
+    if (hostid_loc.location != NSNotFound)
+        hostid_str = [warnMessage substringFromIndex:hostid_loc.location + hostid_loc.length + 1];
+    NSRange hostid_loc2 = [hostid_str rangeOfString:@"\""];
+    if (hostid_loc2.location != NSNotFound)
+        hostid_str = [hostid_str substringToIndex:hostid_loc2.location];
+
+    if (warning_str.length > 0 && host_str.length > 0 && hostid_str.length > 0) {
+        [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"[Tor] %@ %@ (id: %@)", warning_str, host_str, hostid_str]];
+    } else if (warning_str.length > 0) {
+        [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"[Tor] Warning: %@", warning_str]];
+    } else {
+        [tvc renderTorStatus:warnMessage];
+        return;
+    }
+    
+    // Build a new summary for the user
+    NSRange summary_loc = [warnMessage rangeOfString:@"SUMMARY="];
+    NSString *summary_str = @"";
+    NSString *status_line = @"";
+    if (summary_loc.location != NSNotFound) {
+        summary_str = [warnMessage substringFromIndex:summary_loc.location + summary_loc.length + 1];
+        status_line = [warnMessage substringToIndex:summary_loc.location + summary_loc.length];
+    }
+    NSRange summary_loc2 = [summary_str rangeOfString:@"\""];
+    if (summary_loc2.location != NSNotFound) {
+        summary_str = [summary_str substringToIndex:summary_loc2.location];
+        
+        status_line = [status_line stringByAppendingString:[NSString stringWithFormat:@"\"Stuck: %@\"", warning_str]];
+        status_line = [status_line stringByAppendingString:[warnMessage substringFromIndex:summary_loc.location + summary_loc.length + summary_loc2.length + summary_str.length + 1]];
+    }
+    
+    [tvc renderTorStatus:status_line];
 }
 
 
