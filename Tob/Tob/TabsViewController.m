@@ -679,7 +679,7 @@ static const int kNewIdentityMaxTries = 3;
     else if ([userInput hasPrefix:@"mobile."])
         workingInput = [@"http://" stringByAppendingString:userInput];
     else
-        workingInput = [@"http://www." stringByAppendingString:userInput];
+        workingInput = [@"http://" stringByAppendingString:userInput];
     
     NSURL *url = [NSURL URLWithString:workingInput];
     for (NSString *extension in urlEndings) {
@@ -849,7 +849,7 @@ static const int kNewIdentityMaxTries = 3;
 - (void)renderTorStatus:(NSString *)statusLine {
     NSRange progress_loc = [statusLine rangeOfString:@"BOOTSTRAP PROGRESS="];
     NSRange progress_r = {
-        progress_loc.location+progress_loc.length,
+        progress_loc.location + progress_loc.length,
         3
     };
     NSString *progress_str = @"";
@@ -862,7 +862,7 @@ static const int kNewIdentityMaxTries = 3;
     NSRange summary_loc = [statusLine rangeOfString:@" SUMMARY="];
     NSString *summary_str = @"";
     if (summary_loc.location != NSNotFound)
-        summary_str = [statusLine substringFromIndex:summary_loc.location+summary_loc.length+1];
+        summary_str = [statusLine substringFromIndex:summary_loc.location + summary_loc.length + 1];
     NSRange summary_loc2 = [summary_str rangeOfString:@"\""];
     if (summary_loc2.location != NSNotFound)
         summary_str = [summary_str substringToIndex:summary_loc2.location];
@@ -998,36 +998,26 @@ static const int kNewIdentityMaxTries = 3;
 }
 
 - (void)getIPAddress {
-    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    [appDelegate.tor requestTorInfo];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+        [appDelegate.tor requestTorInfo];
+    });
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         int currentIndentityNumber = _newIdentityNumber;
         
-        NSURL *URL = [[NSURL alloc] initWithString:@"https://api.duckduckgo.com/?q=my+ip&l=1&no_redirect=1&format=json"];
+        NSURL *URL = [[NSURL alloc] initWithString:@"https://api.ipify.org?format=json"];
         NSData *data = [NSData dataWithContentsOfURL:URL options:NSDataReadingUncached error:nil];
         
         if (data) {
-            NSDictionary *dictionary = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
-            
-            NSString *IP = [dictionary objectForKey:@"Answer"];
-            NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" options:0 error:NULL];
+            NSDictionary *dictionary = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
+            NSString *IP = [dictionary objectForKey:@"ip"];
             
             dispatch_async(dispatch_get_main_queue(), ^{
                 if (_newIdentityNumber == currentIndentityNumber) {
                     if (IP) {
-                        NSArray *matches = [regex matchesInString:IP options:0 range:NSMakeRange(0, [IP length])];
-                        if ([matches count] > 0) {
-                            // Extract only the IP address without the text arround it
-                            _IPAddress = [IP substringWithRange:[[matches objectAtIndex:0] range]];
-                            _IPAddressLabel.text = [NSString stringWithFormat:NSLocalizedString(@"IP: %@", nil), _IPAddress];
-                        } else if (_newIdentityTryCount < kNewIdentityMaxTries) {
-                            _newIdentityTryCount += 1;
-                            [self getIPAddress]; // Try again
-                            _IPAddressLabel.text = NSLocalizedString(@"IP: Error, trying again…", nil);
-                        } else {
-                            _IPAddressLabel.text = NSLocalizedString(@"IP: Error", nil);
-                        }
+                        _IPAddress = IP;
+                        _IPAddressLabel.text = [NSString stringWithFormat:NSLocalizedString(@"IP: %@", nil), _IPAddress];
                     } else if (_newIdentityTryCount < kNewIdentityMaxTries) {
                         _newIdentityTryCount += 1;
                         [self getIPAddress]; // Try again
@@ -1035,19 +1025,18 @@ static const int kNewIdentityMaxTries = 3;
                     } else {
                         _IPAddressLabel.text = NSLocalizedString(@"IP: Error", nil);
                     }
-                } else if (_newIdentityNumber == currentIndentityNumber) {
-                    [self getIPAddress]; // Try again
-                    _IPAddressLabel.text = NSLocalizedString(@"IP: Error, trying again…", nil);
                 }
             });
         } else if (_newIdentityNumber == currentIndentityNumber) {
-            if (_newIdentityTryCount < kNewIdentityMaxTries) {
-                _newIdentityTryCount += 1;
-                [self getIPAddress]; // Try again
-                _IPAddressLabel.text = NSLocalizedString(@"IP: Error, trying again…", nil);
-            } else {
-                _IPAddressLabel.text = NSLocalizedString(@"IP: Error", nil);
-            }
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (_newIdentityTryCount < kNewIdentityMaxTries) {
+                    _newIdentityTryCount += 1;
+                    [self getIPAddress]; // Try again
+                    _IPAddressLabel.text = NSLocalizedString(@"IP: Error, trying again…", nil);
+                } else {
+                    _IPAddressLabel.text = NSLocalizedString(@"IP: Error", nil);
+                }
+            });
         }
     });
 }
