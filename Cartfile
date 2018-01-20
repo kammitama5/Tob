@@ -1,2 +1,4 @@
-#github "mtigas/Tor.framework" "a1b2928a5c5a439f2922151df881707b332b7c0b"
-github "mtigas/Tor.framework" "tor0.3.0.7-libevent2.1.8-openssl1.0.2k-v2"
+#github "mtigas/Tor.framework" == 31.9.1
+binary "https://cdn.tig.as/files/Tor.json" == 31.9.1
+
+binary "https://cdn.tig.as/files/Iobfs4proxy.json" == 1.0
