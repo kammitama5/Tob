@@ -59,6 +59,8 @@
 		334CF96B1CD380E700C3E346 /* torrc in Resources */ = {isa = PBXBuildFile; fileRef = 334CF94A1CD380E700C3E346 /* torrc */; };
 		334CF96C1CD380E700C3E346 /* TorWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF94C1CD380E700C3E346 /* TorWrapper.m */; };
 		334CF96D1CD380E700C3E346 /* ULINetSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF94E1CD380E700C3E346 /* ULINetSocket.m */; };
+		335D370720137A05001B872B /* TorCircuitViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 335D370620137A05001B872B /* TorCircuitViewController.m */; };
+		335D370A20137AE8001B872B /* Ipv6Tester.m in Sources */ = {isa = PBXBuildFile; fileRef = 335D370820137AE8001B872B /* Ipv6Tester.m */; };
 		336012301CE789E600DDC290 /* iRate.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 3360122D1CE789E600DDC290 /* iRate.bundle */; };
 		336012311CE789E600DDC290 /* iRate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3360122F1CE789E600DDC290 /* iRate.m */; };
 		336181FA1E09963400642D0F /* geoip in Resources */ = {isa = PBXBuildFile; fileRef = 336181F81E09963400642D0F /* geoip */; };
@@ -76,7 +78,6 @@
 		33AFDFEA1CDB703200B6DFBB /* JSTools.js in Resources */ = {isa = PBXBuildFile; fileRef = 33AFDFE91CDB703200B6DFBB /* JSTools.js */; };
 		33B3E8E31F45BCE300714595 /* URLBlocker.m in Sources */ = {isa = PBXBuildFile; fileRef = 33B3E8E21F45BCE300714595 /* URLBlocker.m */; };
 		33B3E8E51F45C2E800714595 /* blockerlist.json in Resources */ = {isa = PBXBuildFile; fileRef = 33B3E8E41F45C2E800714595 /* blockerlist.json */; };
-		33BD084A1E05609F006B2957 /* Ipv6Tester.m in Sources */ = {isa = PBXBuildFile; fileRef = 33BD08491E05609F006B2957 /* Ipv6Tester.m */; };
 		33BD084D1E0581D0006B2957 /* BridgesTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 33BD084C1E0581D0006B2957 /* BridgesTableViewController.m */; };
 		33C5DB971CD2240500102324 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3396C3601CCF739200C7CCE2 /* AppDelegate.m */; };
 		33C5DB981CD2240B00102324 /* TabsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3396C3631CCF739200C7CCE2 /* TabsViewController.m */; };
@@ -204,6 +205,10 @@
 		334CF94C1CD380E700C3E346 /* TorWrapper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TorWrapper.m; sourceTree = "<group>"; };
 		334CF94D1CD380E700C3E346 /* ULINetSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ULINetSocket.h; sourceTree = "<group>"; };
 		334CF94E1CD380E700C3E346 /* ULINetSocket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ULINetSocket.m; sourceTree = "<group>"; };
+		335D370520137A05001B872B /* TorCircuitViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TorCircuitViewController.h; sourceTree = "<group>"; };
+		335D370620137A05001B872B /* TorCircuitViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TorCircuitViewController.m; sourceTree = "<group>"; };
+		335D370820137AE8001B872B /* Ipv6Tester.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Ipv6Tester.m; path = ThirdParty/Ipv6Tester.m; sourceTree = SOURCE_ROOT; };
+		335D370920137AE8001B872B /* Ipv6Tester.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Ipv6Tester.h; path = ThirdParty/Ipv6Tester.h; sourceTree = SOURCE_ROOT; };
 		3360122D1CE789E600DDC290 /* iRate.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = iRate.bundle; sourceTree = "<group>"; };
 		3360122E1CE789E600DDC290 /* iRate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iRate.h; sourceTree = "<group>"; };
 		3360122F1CE789E600DDC290 /* iRate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iRate.m; sourceTree = "<group>"; };
@@ -234,8 +239,6 @@
 		33B3E8E11F45BCE300714595 /* URLBlocker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = URLBlocker.h; sourceTree = "<group>"; };
 		33B3E8E21F45BCE300714595 /* URLBlocker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = URLBlocker.m; sourceTree = "<group>"; };
 		33B3E8E41F45C2E800714595 /* blockerlist.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = blockerlist.json; sourceTree = "<group>"; };
-		33BD08481E05609F006B2957 /* Ipv6Tester.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Ipv6Tester.h; path = ../Ipv6Tester.h; sourceTree = "<group>"; };
-		33BD08491E05609F006B2957 /* Ipv6Tester.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Ipv6Tester.m; path = ../Ipv6Tester.m; sourceTree = "<group>"; };
 		33BD084B1E0581D0006B2957 /* BridgesTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BridgesTableViewController.h; sourceTree = "<group>"; };
 		33BD084C1E0581D0006B2957 /* BridgesTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BridgesTableViewController.m; sourceTree = "<group>"; };
 		33D24E9F1DD5FFFA0091A7DC /* ObfsWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ObfsWrapper.h; sourceTree = "<group>"; };
@@ -416,26 +419,32 @@
 		334CF9451CD380E700C3E346 /* Tor */ = {
 			isa = PBXGroup;
 			children = (
-				33BD08481E05609F006B2957 /* Ipv6Tester.h */,
-				33BD08491E05609F006B2957 /* Ipv6Tester.m */,
 				33D24E9F1DD5FFFA0091A7DC /* ObfsWrapper.h */,
 				33D24EA01DD5FFFA0091A7DC /* ObfsWrapper.m */,
 				334CF94B1CD380E700C3E346 /* TorWrapper.h */,
 				334CF94C1CD380E700C3E346 /* TorWrapper.m */,
 				334CF9481CD380E700C3E346 /* TorController.h */,
 				334CF9491CD380E700C3E346 /* TorController.m */,
-				3373B58C1F42FEE700BC2608 /* TorNode.h */,
-				3373B58D1F42FEE700BC2608 /* TorNode.m */,
-				3373B58F1F43302000BC2608 /* TorCircuit.h */,
-				3373B5901F43302000BC2608 /* TorCircuit.m */,
 				334CF9471CD380E700C3E346 /* tor_main.c */,
 				334CF94A1CD380E700C3E346 /* torrc */,
 				336181F81E09963400642D0F /* geoip */,
 				336181F91E09963400642D0F /* geoip6 */,
 				339570161E05ED3700CCD8DB /* orconfig.h */,
 			);
-			name = Tor;
-			path = ThirdParty/Tor;
+			path = Tor;
+			sourceTree = "<group>";
+		};
+		335D370B20137AF3001B872B /* Tor info */ = {
+			isa = PBXGroup;
+			children = (
+				335D370520137A05001B872B /* TorCircuitViewController.h */,
+				335D370620137A05001B872B /* TorCircuitViewController.m */,
+				3373B58C1F42FEE700BC2608 /* TorNode.h */,
+				3373B58D1F42FEE700BC2608 /* TorNode.m */,
+				3373B58F1F43302000BC2608 /* TorCircuit.h */,
+				3373B5901F43302000BC2608 /* TorCircuit.m */,
+			);
+			name = "Tor info";
 			sourceTree = "<group>";
 		};
 		3360122C1CE789E600DDC290 /* iRate */ = {
@@ -453,7 +462,6 @@
 			isa = PBXGroup;
 			children = (
 				334CF90D1CD380E600C3E346 /* ThirdParty */,
-				334CF9451CD380E700C3E346 /* Tor */,
 				3396C35B1CCF739200C7CCE2 /* Tob */,
 				33FF988F1CDA576D0086AED5 /* Resources */,
 				3396C35A1CCF739200C7CCE2 /* Products */,
@@ -472,6 +480,10 @@
 		3396C35B1CCF739200C7CCE2 /* Tob */ = {
 			isa = PBXGroup;
 			children = (
+				335D370920137AE8001B872B /* Ipv6Tester.h */,
+				335D370820137AE8001B872B /* Ipv6Tester.m */,
+				334CF9451CD380E700C3E346 /* Tor */,
+				335D370B20137AF3001B872B /* Tor info */,
 				3396C35F1CCF739200C7CCE2 /* AppDelegate.h */,
 				3396C3601CCF739200C7CCE2 /* AppDelegate.m */,
 				33E38F9B1D294CA20003314B /* LogViewController.h */,
@@ -654,7 +666,6 @@
 				3334C3EE1F472DE1007DE2E4 /* MTPageViewController.m in Sources */,
 				333E27111CDB859A00D33B2F /* UIColor+JFMinimalNotificationColors.m in Sources */,
 				334CF8D11CD37D7000C3E346 /* Bookmark.m in Sources */,
-				33BD084A1E05609F006B2957 /* Ipv6Tester.m in Sources */,
 				334CF8D21CD37D7000C3E346 /* BookmarkEditViewController.m in Sources */,
 				3334C3ED1F472DE1007DE2E4 /* MTPageViewContainer.m in Sources */,
 				334CF9631CD380E700C3E346 /* QRCodeReaderViewController.m in Sources */,
@@ -671,6 +682,7 @@
 				334CF8C91CD37D5000C3E346 /* UIPlaceHolderTextView.m in Sources */,
 				334CF8B81CD37D0700C3E346 /* ProxyURLProtocol.m in Sources */,
 				334CF8D31CD37D7000C3E346 /* BookmarkTableViewController.m in Sources */,
+				335D370720137A05001B872B /* TorCircuitViewController.m in Sources */,
 				334CF8C71CD37D5000C3E346 /* Bridge.m in Sources */,
 				334CF8BD1CD37D2F00C3E346 /* Settings.xcdatamodeld in Sources */,
 				336012311CE789E600DDC290 /* iRate.m in Sources */,
@@ -686,6 +698,7 @@
 				334CF95D1CD380E700C3E346 /* NSData+Conversion.m in Sources */,
 				3334C3EB1F472DE1007DE2E4 /* MTGradiantAlphaView.m in Sources */,
 				33D24EA11DD5FFFA0091A7DC /* ObfsWrapper.m in Sources */,
+				335D370A20137AE8001B872B /* Ipv6Tester.m in Sources */,
 				33E38F9D1D294CA20003314B /* LogViewController.m in Sources */,
 				334CF94F1CD380E700C3E346 /* CKHTTPConnection.m in Sources */,
 				33BD084D1E0581D0006B2957 /* BridgesTableViewController.m in Sources */,
