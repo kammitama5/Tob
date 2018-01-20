@@ -592,24 +592,23 @@ void HandleSignal(int signal) {
         [Bridge updateBridgeLines:[Bridge defaultMeekAzure]];
     }
     NSInteger ipSetting = [[settings valueForKey:@"tor_ipv4v6"] integerValue];
+    NSInteger ipv6_status = [Ipv6Tester ipv6_status]; // Always call this to make sure the IP info is logged
     if (ipSetting == OB_IPV4V6_AUTO) {
-        NSInteger ipv6_status = [Ipv6Tester ipv6_status];
         if (ipv6_status == TOR_IPV6_CONN_ONLY) {
             // TODO: eventually get rid of "UseMicrodescriptors 0" workaround
             //       (because it is very slow) pending this ticket:
             //       https://trac.torproject.org/projects/tor/ticket/20996
-            [myHandle writeData:[@"\nClientUseIPv4 0\nClientUseIPv6 1\n" dataUsingEncoding:NSUTF8StringEncoding]];
+            [myHandle writeData:[@"\nClientUseIPv4 0\nClientUseIPv6 1\nUseMicrodescriptors 0\nClientPreferIPv6ORPort 1\nClientPreferIPv6DirPort 1\n" dataUsingEncoding:NSUTF8StringEncoding]];
         } else if (ipv6_status == TOR_IPV6_CONN_DUAL) {
             [myHandle writeData:[@"\nClientUseIPv4 1\nClientUseIPv6 1\n" dataUsingEncoding:NSUTF8StringEncoding]];
         } else {
-            [myHandle writeData:[@"\nClientUseIPv4 1\n" dataUsingEncoding:NSUTF8StringEncoding]];
+            [myHandle writeData:[@"\nClientUseIPv4 1\nClientUseIPv6 0\n" dataUsingEncoding:NSUTF8StringEncoding]];
         }
     } else if (ipSetting == OB_IPV4V6_V6ONLY) {
-        [myHandle writeData:[@"\nClientUseIPv4 0\nClientUseIPv6 1\n" dataUsingEncoding:NSUTF8StringEncoding]];
+        [myHandle writeData:[@"\nClientUseIPv4 0\nClientUseIPv6 1\nUseMicrodescriptors 0\nClientPreferIPv6ORPort 1\nClientPreferIPv6DirPort 1\n" dataUsingEncoding:NSUTF8StringEncoding]];
     } else {
-        [myHandle writeData:[@"\nClientUseIPv4 1\n" dataUsingEncoding:NSUTF8StringEncoding]];
+        [myHandle writeData:[@"\nClientUseIPv4 1\nClientUseIPv6 0\n" dataUsingEncoding:NSUTF8StringEncoding]];
     }
-    
     
     NSFetchRequest *request = [[NSFetchRequest alloc] init];
     NSManagedObjectContext *managedContext = [self managedObjectContext];
@@ -642,7 +641,6 @@ void HandleSignal(int signal) {
         }
     }
     [myHandle closeFile];
-    
     
     // Encrypt the new torrc (since this "running" copy of torrc may now contain bridges)
     NSDictionary *f_options = [NSDictionary dictionaryWithObjectsAndKeys:
