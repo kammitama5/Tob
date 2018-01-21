@@ -170,7 +170,12 @@
 "You can configure bridges here if your ISP normally blocks access to Tor.\n\nIf you did not mean to access the Bridge configuration, press \"Cancel\", then \"Restart App\", and then re-launch Tob." = "You can configure bridges here if your ISP normally blocks access to Tor.\n\nIf you did not mean to access the Bridge configuration, press \"Cancel\", then \"Restart App\", and then re-launch Tob.";
 "Close all tabs" = "Close all tabs";
 
-/* WebView tab*/
+/* Tor info */
+"Tor circuits" = "Tor circuits";
+"Circuit %@" = "Circuit %@";
+"Circuit %@ (current)" = "Circuit %@ (current)";
+
+/* WebView tab */
 "Loading..." = "Loading...";
 "Failed to open PDF" = "Failed to open PDF";
 "Failed to load PDF" = "Failed to load PDF";

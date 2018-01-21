@@ -10,6 +10,7 @@
 #import "AppDelegate.h"
 #import "BookmarkTableViewController.h"
 #import "SettingsTableViewController.h"
+#import "TorCircuitTableViewController.h"
 #import "Bookmark.h"
 #import "BridgeViewController.h"
 #import "NSStringPunycodeAdditions.h"
@@ -844,6 +845,8 @@ static const int kNewIdentityMaxTries = 3;
     appDelegate.restoredIndex = 0;
     appDelegate.restoredData = nil;
     appDelegate.startUrl = nil;
+    
+    [self getIPAddress];
 }
 
 - (void)renderTorStatus:(NSString *)statusLine {
@@ -881,6 +884,9 @@ static const int kNewIdentityMaxTries = 3;
 }
 
 - (void)displayTorPanel {
+    AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    [appDelegate.tor requestTorInfo];
+    
     _torPanelView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 300, 120)];
     _torPanelView.center = self.view.center;
     _torPanelView.layer.cornerRadius = 5.0f;
@@ -911,7 +917,12 @@ static const int kNewIdentityMaxTries = 3;
     [logButton addTarget:self action:@selector(showLog) forControlEvents:UIControlEventTouchUpInside];
     [_torPanelView addSubview:logButton];
     
-    _IPAddressLabel = [[UILabel alloc] initWithFrame:CGRectMake(25, 45, 250, 35)];
+    UIButton *circuitInfoButton = [UIButton buttonWithType:UIButtonTypeInfoLight];
+    [circuitInfoButton setFrame:CGRectMake(closeButton.frame.origin.x, 45, closeButton.frame.size.width, 25)];
+    [circuitInfoButton addTarget:self action:@selector(showCircuitInfo) forControlEvents:UIControlEventTouchUpInside];
+    [_torPanelView insertSubview:circuitInfoButton belowSubview:closeButton];
+    
+    _IPAddressLabel = [[UILabel alloc] initWithFrame:CGRectMake(logButton.frame.origin.x, circuitInfoButton.frame.origin.y, 250, circuitInfoButton.frame.size.height)];
     [_IPAddressLabel setAdjustsFontSizeToFitWidth:YES];
     
     if (_IPAddress)
@@ -932,14 +943,13 @@ static const int kNewIdentityMaxTries = 3;
     [newIdentityButton addTarget:self action:@selector(newIdentity) forControlEvents:UIControlEventTouchUpInside];
     [_torPanelView addSubview:newIdentityButton];
     
-    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     NSMutableDictionary *settings = appDelegate.getSettings;
-    
     if (![[settings valueForKey:@"night-mode"] boolValue]) {
         _torPanelView.backgroundColor = [UIColor groupTableViewBackgroundColor];
         torTitle.textColor = [UIColor blackColor];
         [closeButton setTitleColor:self.view.tintColor forState:UIControlStateNormal];
         [logButton setTintColor:self.view.tintColor];
+        [circuitInfoButton setTintColor:self.view.tintColor];
         _IPAddressLabel.textColor = [UIColor blackColor];
         [newIdentityButton setTitleColor:self.view.tintColor forState:UIControlStateNormal];
     } else {
@@ -947,6 +957,7 @@ static const int kNewIdentityMaxTries = 3;
         torTitle.textColor = [UIColor whiteColor];
         [closeButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         [logButton setTintColor:[UIColor whiteColor]];
+        [circuitInfoButton setTintColor:[UIColor whiteColor]];
         _IPAddressLabel.textColor = [UIColor whiteColor];
         [newIdentityButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     }
@@ -983,6 +994,12 @@ static const int kNewIdentityMaxTries = 3;
     [self presentViewController:appDelegate.logViewController animated:NO completion:nil];
 }
 
+- (void)showCircuitInfo {
+    TorCircuitTableViewController *infoTVC = [[TorCircuitTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
+    UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:infoTVC];
+    [self presentViewController:navigationController animated:YES completion:nil];
+}
+
 - (void)showTLSStatus {
     int tlsStatus = [(CustomWebView *)_webViewObject TLSStatus];
     
@@ -998,11 +1015,6 @@ static const int kNewIdentityMaxTries = 3;
 }
 
 - (void)getIPAddress {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-        [appDelegate.tor requestTorInfo];
-    });
-    
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         int currentIndentityNumber = _newIdentityNumber;
         
@@ -1016,6 +1028,9 @@ static const int kNewIdentityMaxTries = 3;
             dispatch_async(dispatch_get_main_queue(), ^{
                 if (_newIdentityNumber == currentIndentityNumber) {
                     if (IP) {
+                        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+                        [appDelegate.tor setCurrentVisibleIP:IP];
+
                         _IPAddress = IP;
                         _IPAddressLabel.text = [NSString stringWithFormat:NSLocalizedString(@"IP: %@", nil), _IPAddress];
                     } else if (_newIdentityTryCount < kNewIdentityMaxTries) {
@@ -1038,6 +1053,11 @@ static const int kNewIdentityMaxTries = 3;
                 }
             });
         }
+    });
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+        [appDelegate.tor requestTorInfo];
     });
 }
 
@@ -1081,6 +1101,7 @@ static const int kNewIdentityMaxTries = 3;
 
 - (void)newIdentity {
     _newIdentityNumber ++;
+    _newIdentityTryCount = 0;
     _IPAddress = nil;
     _IPAddressLabel.text = NSLocalizedString(@"IP: Loading…", nil);
     
@@ -1090,20 +1111,24 @@ static const int kNewIdentityMaxTries = 3;
         [_torPanelView removeFromSuperview];
         _torPanelView = nil;
     }];
-
-    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    [appDelegate wipeAppData];
     
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:appDelegate.window animated:YES];
     hud.mode = MBProgressHUDModeIndeterminate;
     [hud.label setNumberOfLines:2];
     hud.label.text = NSLocalizedString(@"Clearing cache…", nil);
     
+    for (int i = 0; i < [[self contentViews] count]; i++) {
+        [[[self contentViews] objectAtIndex:i] stopLoading];
+    }
+
+    [appDelegate wipeAppData];
+    
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [appDelegate.tor requestNewTorIdentity];
         hud.label.text = NSLocalizedString(@"Requesting new identity…", nil);
         
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(7.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             [appDelegate wipeAppData];
 
             for (int i = 0; i < [[self contentViews] count]; i++) {
@@ -1120,6 +1145,7 @@ static const int kNewIdentityMaxTries = 3;
             } completion:^(BOOL finished) {
                 [_torDarkBackgroundView removeFromSuperview];
                 _torDarkBackgroundView = nil;
+                [self getIPAddress];
             }];
         });
     });

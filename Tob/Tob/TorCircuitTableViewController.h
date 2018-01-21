@@ -1,5 +1,5 @@
 //
-//  TorCircuitViewController.h
+//  TorCircuitTableViewController.h
 //  Tob
 //
 //  Created by Jean-Romain on 20/01/2018.
@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface TorCircuitViewController : UIViewController
+@interface TorCircuitTableViewController : UITableViewController
 
 @end

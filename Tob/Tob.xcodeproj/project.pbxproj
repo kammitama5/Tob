@@ -59,8 +59,8 @@
 		334CF96B1CD380E700C3E346 /* torrc in Resources */ = {isa = PBXBuildFile; fileRef = 334CF94A1CD380E700C3E346 /* torrc */; };
 		334CF96C1CD380E700C3E346 /* TorWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF94C1CD380E700C3E346 /* TorWrapper.m */; };
 		334CF96D1CD380E700C3E346 /* ULINetSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 334CF94E1CD380E700C3E346 /* ULINetSocket.m */; };
-		335D370720137A05001B872B /* TorCircuitViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 335D370620137A05001B872B /* TorCircuitViewController.m */; };
 		335D370A20137AE8001B872B /* Ipv6Tester.m in Sources */ = {isa = PBXBuildFile; fileRef = 335D370820137AE8001B872B /* Ipv6Tester.m */; };
+		335D371120137E0D001B872B /* TorCircuitTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 335D371020137E0D001B872B /* TorCircuitTableViewController.m */; };
 		336012301CE789E600DDC290 /* iRate.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 3360122D1CE789E600DDC290 /* iRate.bundle */; };
 		336012311CE789E600DDC290 /* iRate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3360122F1CE789E600DDC290 /* iRate.m */; };
 		336181FA1E09963400642D0F /* geoip in Resources */ = {isa = PBXBuildFile; fileRef = 336181F81E09963400642D0F /* geoip */; };
@@ -205,10 +205,10 @@
 		334CF94C1CD380E700C3E346 /* TorWrapper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TorWrapper.m; sourceTree = "<group>"; };
 		334CF94D1CD380E700C3E346 /* ULINetSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ULINetSocket.h; sourceTree = "<group>"; };
 		334CF94E1CD380E700C3E346 /* ULINetSocket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ULINetSocket.m; sourceTree = "<group>"; };
-		335D370520137A05001B872B /* TorCircuitViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TorCircuitViewController.h; sourceTree = "<group>"; };
-		335D370620137A05001B872B /* TorCircuitViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TorCircuitViewController.m; sourceTree = "<group>"; };
 		335D370820137AE8001B872B /* Ipv6Tester.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Ipv6Tester.m; path = ThirdParty/Ipv6Tester.m; sourceTree = SOURCE_ROOT; };
 		335D370920137AE8001B872B /* Ipv6Tester.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Ipv6Tester.h; path = ThirdParty/Ipv6Tester.h; sourceTree = SOURCE_ROOT; };
+		335D370F20137E0D001B872B /* TorCircuitTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TorCircuitTableViewController.h; sourceTree = "<group>"; };
+		335D371020137E0D001B872B /* TorCircuitTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TorCircuitTableViewController.m; sourceTree = "<group>"; };
 		3360122D1CE789E600DDC290 /* iRate.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = iRate.bundle; sourceTree = "<group>"; };
 		3360122E1CE789E600DDC290 /* iRate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iRate.h; sourceTree = "<group>"; };
 		3360122F1CE789E600DDC290 /* iRate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iRate.m; sourceTree = "<group>"; };
@@ -437,8 +437,8 @@
 		335D370B20137AF3001B872B /* Tor info */ = {
 			isa = PBXGroup;
 			children = (
-				335D370520137A05001B872B /* TorCircuitViewController.h */,
-				335D370620137A05001B872B /* TorCircuitViewController.m */,
+				335D370F20137E0D001B872B /* TorCircuitTableViewController.h */,
+				335D371020137E0D001B872B /* TorCircuitTableViewController.m */,
 				3373B58C1F42FEE700BC2608 /* TorNode.h */,
 				3373B58D1F42FEE700BC2608 /* TorNode.m */,
 				3373B58F1F43302000BC2608 /* TorCircuit.h */,
@@ -682,9 +682,9 @@
 				334CF8C91CD37D5000C3E346 /* UIPlaceHolderTextView.m in Sources */,
 				334CF8B81CD37D0700C3E346 /* ProxyURLProtocol.m in Sources */,
 				334CF8D31CD37D7000C3E346 /* BookmarkTableViewController.m in Sources */,
-				335D370720137A05001B872B /* TorCircuitViewController.m in Sources */,
 				334CF8C71CD37D5000C3E346 /* Bridge.m in Sources */,
 				334CF8BD1CD37D2F00C3E346 /* Settings.xcdatamodeld in Sources */,
+				335D371120137E0D001B872B /* TorCircuitTableViewController.m in Sources */,
 				336012311CE789E600DDC290 /* iRate.m in Sources */,
 				333E270D1CDB859A00D33B2F /* JFMinimalNotification.m in Sources */,
 				3303E50A1E33B7E10019949A /* MBProgressHUD.m in Sources */,

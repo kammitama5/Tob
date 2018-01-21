@@ -16,5 +16,6 @@
 @property (nonatomic, strong) NSArray<NSString*> *buildFlags;
 @property (nonatomic, strong) NSString *purpose;
 @property (nonatomic, strong) NSDate *timeCreated;
+@property (nonatomic) BOOL isCurrentCircuit;
 
 @end

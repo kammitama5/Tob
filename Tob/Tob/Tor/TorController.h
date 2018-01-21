@@ -36,6 +36,7 @@
 @property (nonatomic) unsigned int torControlPort;
 
 @property (nonatomic, strong, readonly) NSMutableArray<TorCircuit *> *currentCircuits;
+@property (nonatomic, strong) NSString *currentVisibleIP;
 
 - (id)init;
 - (void)startTor;

@@ -131,10 +131,17 @@ connLastAutoIPStack = _connLastAutoIPStack
 #ifdef DEBUG
     NSLog(@"[Tor] Requesting new identity (SIGNAL NEWNYM)" );
 #endif
+    self.currentVisibleIP = nil;
+    
     [_mSocket writeString:@"SIGNAL NEWNYM\n" encoding:NSUTF8StringEncoding];
     
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     [appDelegate.logViewController logInfo:@"[Tor] Requesting new identity"];
+}
+
+- (void)setCurrentVisibleIP:(NSString *)currentVisibleIP {
+    _currentVisibleIP = currentVisibleIP;
+    [self updateCircuitOrder];
 }
 
 
@@ -310,6 +317,10 @@ connLastAutoIPStack = _connLastAutoIPStack
 - (void)netsocket:(ULINetSocket*)inNetSocket dataAvailable:(unsigned)inAmount {
     NSString *msgIn = [_mSocket readString:NSUTF8StringEncoding];
     
+#ifdef DEBUG
+    NSLog(@"msgIn: %@", msgIn);
+#endif
+    
     if (!_controllerIsAuthenticated) {
         // Response to AUTHENTICATE
         if ([msgIn hasPrefix:@"250"]) {
@@ -474,6 +485,7 @@ connLastAutoIPStack = _connLastAutoIPStack
                 [circuit setBuildFlags:buildFlags];
                 [circuit setPurpose:purpose];
                 [circuit setTimeCreated:dateCreated];
+                [circuit setIsCurrentCircuit:NO];
                 [circuitOrder insertObject:[NSArray arrayWithObjects:circuitID, circuit, nil] atIndex:index];
                 
                 NSString *nodes = [info objectAtIndex:2];
@@ -532,7 +544,7 @@ connLastAutoIPStack = _connLastAutoIPStack
                 }
                 
                 if ([correspondingNodes count] == 0)
-                    return; // We don't care about this node since it's not in self.currentNodes
+                    break; // We don't care about this node since it's not in self.currentNodes
                 
                 /* Extract the node's name and IP */
                 // Format should be "r <NAME> C3ZsrjOVPuRpCX2dprynFoY/jrQ awageVh+KgvJYAgPcG5kruCcJPo <TIME> <IP> 9001 9030"
@@ -554,7 +566,7 @@ connLastAutoIPStack = _connLastAutoIPStack
                 
                 /* Extract the node's version */
                 if ([infoArray count] <= 2 || [[infoArray objectAtIndex:2] length] <= 2)
-                    return;
+                    break;
                 
                 // Format should be "s <VERSION_INFO>"
                 tmp = [[infoArray objectAtIndex:2] substringFromIndex:2]; // Get rid of the "s ="
@@ -564,7 +576,7 @@ connLastAutoIPStack = _connLastAutoIPStack
 
                 /* Extract the node's bandwidth */
                 if ([infoArray count] <= 3 || [[infoArray objectAtIndex:3] length] <= 12)
-                    return;
+                    break;
                 
                 // Format should be "w Bandwidth=<BANDWIDTH>"
                 tmp = [[infoArray objectAtIndex:3] substringFromIndex:12]; // Get rid of the "w Bandwidth="
@@ -573,6 +585,8 @@ connLastAutoIPStack = _connLastAutoIPStack
                 }
             }
         }
+        
+        [self updateCircuitOrder];
     } else if ([msgIn rangeOfString:@"ip-to-country/"].location != NSNotFound) {
         // Multiple results can be received at the same time
         NSArray *requests = [msgIn componentsSeparatedByString:@"250-ip-to-country/"];
@@ -608,19 +622,15 @@ connLastAutoIPStack = _connLastAutoIPStack
             }
         }
         
-        NSString *logString;
-        if (self.currentCircuits.count > 0 && [self.currentCircuits objectAtIndex:0].nodes.count > 0) {
-            logString = @"[Tor] Found all current circuit's info:";
-            
-            for (TorNode *node in [self.currentCircuits objectAtIndex:0].nodes) {
-                logString = [logString stringByAppendingString:[NSString stringWithFormat:@"\n• %@: %@ (%@) - ID=%@, Bandwidth=%@, v=%@", node.name, node.IP, node.country, node.ID, node.bandwidth, node.version]];
-            }
+        if (self.currentCircuits.count == 0 || [self.currentCircuits objectAtIndex:0].nodes.count == 0) {
+            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+            [appDelegate.logViewController logInfo:@"[Tor] Circuit nodes not found"];
         } else {
-            logString = @"[Tor] Current circuit's nodes not found";
+            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+            TorNode *exitNode = [[[self.currentCircuits firstObject] nodes] lastObject];
+            [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"[Tor] Found exit node's IP: %@ (%@)", exitNode.IP, exitNode.country]];
         }
         
-        AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-        [appDelegate.logViewController logInfo:logString];
     } else {
 #ifdef DEBUG
         NSLog(@"msgIn: %@", msgIn);
@@ -640,6 +650,22 @@ connLastAutoIPStack = _connLastAutoIPStack
     [formatter setLocale:posix];
     
     return [formatter dateFromString:date];
+}
+
+- (void)updateCircuitOrder {
+    if (!self.currentVisibleIP)
+        return;
+    
+    // Change the circuit order to make sure the first one has the right exit node
+    for (int i = 0; i < self.currentCircuits.count; i++) {
+        TorCircuit *circuit = [self.currentCircuits objectAtIndex:i];
+        if ([circuit.nodes.lastObject.IP isEqualToString:self.currentVisibleIP]) {
+            [circuit setIsCurrentCircuit:YES];
+            [self.currentCircuits removeObjectAtIndex:i];
+            [self.currentCircuits insertObject:circuit atIndex:0];
+            return;
+        }
+    }
 }
 
 - (void)warnUserWithString:(NSString *)warnMessage {
