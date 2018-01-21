@@ -118,12 +118,13 @@ connLastAutoIPStack = _connLastAutoIPStack
 
 - (void)requestTorInfo {
 #ifdef DEBUG
-    NSLog(@"[Tor] Requesting Tor info (getinfo orconn-status)" );
+    NSLog(@"[Tor] Requesting Tor info (getinfo circuit-status)" );
 #endif
     
     // Reset circuits info
     _currentCircuits = [[NSMutableArray alloc] init];
 
+    // getinfo orconn-status
     [_mSocket writeString:@"getinfo circuit-status\n" encoding:NSUTF8StringEncoding];
 }
 
@@ -278,7 +279,7 @@ connLastAutoIPStack = _connLastAutoIPStack
     [appDelegate.logViewController logInfo:@"[Tor] DisableNetwork is set: Tor will not make or accept non-control network connections, shutting down all existing connections"];
 }
 
-- (void) enableNetwork {
+- (void)enableNetwork {
     [_mSocket writeString:@"setconf disablenetwork=0\n" encoding:NSUTF8StringEncoding];
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     [[appDelegate tabsViewController] refreshCurrentTab];
@@ -323,54 +324,15 @@ connLastAutoIPStack = _connLastAutoIPStack
     
     if (!_controllerIsAuthenticated) {
         // Response to AUTHENTICATE
-        if ([msgIn hasPrefix:@"250"]) {
-#ifdef DEBUG
-            NSLog(@"[Tor] Control Port Authenticated Successfully");
-#endif
-            
-            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-            [appDelegate.logViewController logInfo:@"[Tor] Control Port Authenticated Successfully"];
-            _controllerIsAuthenticated = YES;
-            
-            [_mSocket writeString:@"getinfo status/bootstrap-phase\n" encoding:NSUTF8StringEncoding];
-            _torCheckLoopTimer = [NSTimer scheduledTimerWithTimeInterval:0.15f
-                                                                  target:self
-                                                                selector:@selector(checkTor)
-                                                                userInfo:nil
-                                                                 repeats:NO];
-        }
-        else {
-#ifdef DEBUG
-            NSLog(@"[Tor] Control Port: Got unknown post-authenticate message %@", msgIn);
-#endif
-            // Could not authenticate with control port. This is the worst thing
-            // that can happen on app init and should fail badly so that the
-            // app does not just hang there.
-            if (didFirstConnect) {
-                // If we've already performed initial connect, wait a couple
-                // seconds and try to HUP tor.
-                if (_torCheckLoopTimer != nil) {
-                    [_torCheckLoopTimer invalidate];
-                }
-                if (_torStatusTimeoutTimer != nil) {
-                    [_torStatusTimeoutTimer invalidate];
-                }
-                _torCheckLoopTimer = [NSTimer scheduledTimerWithTimeInterval:2.5f
-                                                                      target:self
-                                                                    selector:@selector(hupTor)
-                                                                    userInfo:nil
-                                                                     repeats:NO];
-            } else {
-                // Otherwise, crash because we don't know the app's current state
-                // (since it hasn't totally initialized yet).
-                exit(0);
-            }
-        }
+        if ([msgIn hasPrefix:@"250"])
+            [self controlPortDidAuthenticateSuccessfully];
+        else
+            [self controlPortDidGetUnrecognizedPostAuthenticateMessage:msgIn];
     } else if ([msgIn rangeOfString:@"-status/bootstrap-phase="].location != NSNotFound) {
         // Response to "getinfo status/bootstrap-phase"
         AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
         
-        if ([msgIn rangeOfString:@"250-status/bootstrap-phase=WARN"].location != NSNotFound) {
+        if ([msgIn rangeOfString:@"-status/bootstrap-phase=WARN"].location != NSNotFound) {
             _connectionStatus = CONN_STATUS_NONE;
             [self warnUserWithString:msgIn];
             return;
@@ -380,29 +342,15 @@ connLastAutoIPStack = _connLastAutoIPStack
             _connectionStatus = CONN_STATUS_CONNECTED;
         }
         
-        TabsViewController *tvc = appDelegate.tabsViewController;
         if (!didFirstConnect) {
             if ([msgIn rangeOfString:@"BOOTSTRAP PROGRESS=100"].location != NSNotFound) {
                 // This is our first go-around (haven't loaded page into webView yet)
                 // but we are now at 100%, so go ahead.
-                didFirstConnect = YES;
-                
-                [tvc renderTorStatus:msgIn];
-                
-                JFMinimalNotification *minimalNotification = [JFMinimalNotification notificationWithStyle:JFMinimalNotificationStyleDefault title:NSLocalizedString(@"Initializing Tor circuit…", nil) subTitle:NSLocalizedString(@"First page load may be slow to start.", nil) dismissalDelay:4.0];
-                minimalNotification.layer.zPosition = MAXFLOAT;
-                [tvc.view addSubview:minimalNotification];
-                [minimalNotification show];
-                
-                // See "checkTor call in middle of app" a little bit below.
-                _torCheckLoopTimer = [NSTimer scheduledTimerWithTimeInterval:5.0f
-                                                                      target:self
-                                                                    selector:@selector(checkTor)
-                                                                    userInfo:nil
-                                                                     repeats:NO];
+                [self bootstrapPhaseDidEndWithMessage:msgIn];
             } else {
                 // Haven't done initial load yet and still waiting on bootstrap, so
                 // render status.
+                TabsViewController *tvc = appDelegate.tabsViewController;
                 [tvc renderTorStatus:msgIn];
                 _torCheckLoopTimer = [NSTimer scheduledTimerWithTimeInterval:TOR_STATUS_WAIT
                                                                       target:self
@@ -412,214 +360,40 @@ connLastAutoIPStack = _connLastAutoIPStack
             }
         }
     } else if ([msgIn rangeOfString:@"orconn-status="].location != NSNotFound) {
-        [_torStatusTimeoutTimer invalidate];
         // Response to "getinfo orconn-status"
         // This is a response to a "checkTor" call in the middle of our app.
+        [_torStatusTimeoutTimer invalidate];
+
         if ([msgIn rangeOfString:@"250 OK"].location == NSNotFound) {
             // Bad stuff! Should HUP since this means we can still talk to Tor, but Tor is having issues with it's onion routing connections.
-            NSLog(@"[Tor] Control Port: orconn-status: NOT OK\n    %@",
-                  [msgIn
-                   stringByReplacingOccurrencesOfString:@"\n"
-                   withString:@"\n    "]
-                  );
-            
-            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-            [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"[Tor] Control Port: orconn-status: NOT OK\n    %@", [msgIn stringByReplacingOccurrencesOfString:@"\n" withString:@"\n    "]]];
-
-            [self hupTor];
+            [self controlPortDidReceiveStatusNotOK:msgIn];
         } else {
-#ifdef DEBUG
-            NSLog(@"[Tor] Control Port: orconn-status: OK");
-#endif
-            _torCheckLoopTimer = [NSTimer scheduledTimerWithTimeInterval:5.0f
-                                                                  target:self
-                                                                selector:@selector(checkTor)
-                                                                userInfo:nil
-                                                                 repeats:NO];
+            [self controlPortDidReceiveStatusOK];
         }
-    
     } else if ([msgIn rangeOfString:@"circuit-status="].location != NSNotFound) {
+        // Response to "getinfo circuit-status"
         NSMutableArray *guards = [[msgIn componentsSeparatedByString: @"\r\n"] mutableCopy];
         
         if ([guards count] > 1) {
-            // If the value is correct, the first object should be "250+entry-guards="
-            // The next ones should be "$<ID>~<NAME> <STATUS>"
-            [guards removeObjectAtIndex:0];
-            
-            // Keep, for each circuit, its ID and order them
-            NSMutableArray *circuitOrder = [[NSMutableArray alloc] init];
-            
-            for (__strong NSString *circuitInfo in guards) {
-                NSMutableArray<TorNode *> *currentNodes = [[NSMutableArray alloc] init];
-                
-                // Format should be "<ID> <STATUS> <LIST_OF_NODES> BUILD_FLAGS=<FLAGS> PURPOSE=<PURPOSE> TIME_CREATED=<ISO8601_TIME>"
-                NSArray *info = [circuitInfo componentsSeparatedByString:@" "]; // Infos are separated by spaces
-                
-                // If there isn't enough info, this isn't a circuit
-                if ([info count] < 6)
-                    continue;
-                
-                NSNumber *circuitID = [NSNumber numberWithInt:[[info objectAtIndex:0] intValue]];
-                
-                // Find the proper index for this node for the array to be ordered by ID
-                int index = 0;
-                for (int i = 0; i < [circuitOrder count]; i++) {
-                    if ([[circuitOrder objectAtIndex:i] objectAtIndex:0] > circuitID)
-                        break;
-                    index++;
-                }
-                
-                // Find the build flags and convert them to a list
-                NSString *flags = [[info objectAtIndex:3] substringFromIndex:@"BUILD_FLAGS=".length];
-                NSArray *buildFlags = [flags componentsSeparatedByString:@","]; // Flags are separated by comas
-                
-                // Find the circuit's purpose
-                NSString *purpose = [[info objectAtIndex:4] substringFromIndex:@"PURPOSE=".length];
-                
-                // Find the created time and convert it to a date
-                NSString *timeCreated = [[info objectAtIndex:5] substringFromIndex:@"TIME_CREATED=".length];
-                NSDate *dateCreated = [self parseISO8601Time:timeCreated];
-                
-                TorCircuit *circuit = [[TorCircuit alloc] init];
-                [circuit setID:circuitID];
-                [circuit setBuildFlags:buildFlags];
-                [circuit setPurpose:purpose];
-                [circuit setTimeCreated:dateCreated];
-                [circuit setIsCurrentCircuit:NO];
-                [circuitOrder insertObject:[NSArray arrayWithObjects:circuitID, circuit, nil] atIndex:index];
-                
-                NSString *nodes = [info objectAtIndex:2];
-                NSRange r1 = [nodes rangeOfString:@"$"];
-                NSRange r2 = [nodes rangeOfString:@"~"];
-                NSRange idRange = NSMakeRange(r1.location + r1.length, r2.location - r1.location - r1.length);
-
-                while (r1.location != NSNotFound && r2.location != NSNotFound && idRange.location != NSNotFound) {
-                    NSString *nodeID = [nodes substringWithRange:idRange];
-                    
-                    // Add node to the array
-                    TorNode *node = [[TorNode alloc] init];
-                    [node setID:nodeID];
-                    [currentNodes addObject:node];
-                    
-                    // Get IP for the current exit
-                    [_mSocket writeString:[NSString stringWithFormat:@"getinfo ns/id/%@\n", nodeID] encoding:NSUTF8StringEncoding];
-                    
-                    // Move on to next node (if it exists)
-                    nodes = [nodes substringFromIndex:r2.location + 1];
-                    r1 = [nodes rangeOfString:@"$"];
-                    r2 = [nodes rangeOfString:@"~"];
-                    idRange = NSMakeRange(r1.location + r1.length, r2.location - r1.location - r1.length);
-                }
-                
-                [circuit setNodes:currentNodes];
-            }
-            
-            // Add all the circuits to the array in the right order
-            for (NSArray *circuitInfo in circuitOrder) {
-                [_currentCircuits addObject:[circuitInfo objectAtIndex:1]];
-            }
+            [self didReceiveCircuitStatus:guards];
         }
     } else if ([msgIn rangeOfString:@"ns/id/"].location != NSNotFound) {
+        // Response to "getinfo ns/id/"
         // Multiple results can be received at the same time
         NSArray *requests = [msgIn componentsSeparatedByString:@"250+ns/id/"];
         
         for (NSString *msg in requests) {
-            NSMutableArray *infoArray = [[msg componentsSeparatedByString: @"\r\n"] mutableCopy];
-            
-            if ([infoArray count] > 1) {
-                /* Extract the node's ID */
-                // Format should be "<ID>="
-                NSString *tmp = [infoArray objectAtIndex:0];
-                NSString *nodeID = [tmp substringToIndex:[tmp length] - 1]; // Get rid of the "="
-                
-                /* Find the matching nodes */
-                NSMutableArray<TorNode *> *correspondingNodes = [[NSMutableArray alloc] init];
-                for (TorCircuit *circuit in self.currentCircuits) {
-                    for (TorNode *node in circuit.nodes) {
-                        if ([node.ID isEqualToString:nodeID]) {
-                            [correspondingNodes addObject:node];
-                            break;
-                        }
-                    }
-                }
-                
-                if ([correspondingNodes count] == 0)
-                    break; // We don't care about this node since it's not in self.currentNodes
-                
-                /* Extract the node's name and IP */
-                // Format should be "r <NAME> C3ZsrjOVPuRpCX2dprynFoY/jrQ awageVh+KgvJYAgPcG5kruCcJPo <TIME> <IP> 9001 9030"
-                // e.g. "Iroha C3ZsrjOVPuRpCX2dprynFoY/jrQ awageVh+KgvJYAgPcG5kruCcJPo 2016-05-22 05:04:19 185.21.217.32 9001 9030"
-                tmp = [[infoArray objectAtIndex:1] substringFromIndex:2]; // Get rid of the "r "
-                NSString *nodeName = [tmp substringToIndex:[tmp rangeOfString:@" "].location];
-                
-                NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" options:NSRegularExpressionCaseInsensitive error:nil];
-                NSArray *matches = [regex matchesInString:tmp options:0 range:NSMakeRange(0, [tmp length])];
-                NSString *nodeIP = [tmp substringWithRange:[[matches objectAtIndex:0] rangeAtIndex:0]];
-                
-                for (TorNode *node in correspondingNodes) {
-                    [node setName:nodeName];
-                    [node setIP:nodeIP];
-                }
-                
-                // Find the node's country
-                [_mSocket writeString:[NSString stringWithFormat:@"getinfo ip-to-country/%@\n", nodeIP] encoding:NSUTF8StringEncoding];
-                
-                /* Extract the node's version */
-                if ([infoArray count] <= 2 || [[infoArray objectAtIndex:2] length] <= 2)
-                    break;
-                
-                // Format should be "s <VERSION_INFO>"
-                tmp = [[infoArray objectAtIndex:2] substringFromIndex:2]; // Get rid of the "s ="
-                for (TorNode *node in correspondingNodes) {
-                    [node setVersion:tmp];
-                }
-
-                /* Extract the node's bandwidth */
-                if ([infoArray count] <= 3 || [[infoArray objectAtIndex:3] length] <= 12)
-                    break;
-                
-                // Format should be "w Bandwidth=<BANDWIDTH>"
-                tmp = [[infoArray objectAtIndex:3] substringFromIndex:12]; // Get rid of the "w Bandwidth="
-                for (TorNode *node in correspondingNodes) {
-                    [node setBandwidth:[NSNumber numberWithInt:[tmp intValue]]];
-                }
-            }
+            [self didReceiveNodeInfo:msg];
         }
         
         [self updateCircuitOrder];
     } else if ([msgIn rangeOfString:@"ip-to-country/"].location != NSNotFound) {
+        // Response to "getinfo ip-to-country"
         // Multiple results can be received at the same time
         NSArray *requests = [msgIn componentsSeparatedByString:@"250-ip-to-country/"];
 
         for (NSString *msg in requests) {
-            NSMutableArray *infoArray = [[msg componentsSeparatedByString: @"\r\n"] mutableCopy];
-            
-            if ([infoArray count] > 1) {
-                /* Extract the node's IP */
-                // Format should be "<IP>=<COUNTRY>"
-                NSString *tmp = [infoArray objectAtIndex:0];
-                NSString *nodeIP = [tmp substringToIndex:[tmp rangeOfString:@"="].location];
-                
-                /* Find the matching nodes */
-                NSMutableArray<TorNode *> *correspondingNodes = [[NSMutableArray alloc] init];
-                for (TorCircuit *circuit in self.currentCircuits) {
-                    for (TorNode *node in circuit.nodes) {
-                        if ([node.IP isEqualToString:nodeIP]) {
-                            [correspondingNodes addObject:node];
-                            break;
-                        }
-                    }
-                }
-                
-                if ([correspondingNodes count] == 0)
-                    return; // We don't care about this node since it's not in self.currentNodes
-                
-                /* Extract the node's country */
-                // Format should be "<IP>=<COUNTRY>"
-                for (TorNode *node in correspondingNodes) {
-                    [node setCountry:[tmp substringFromIndex:[tmp rangeOfString:@"="].location + 1]];
-                }
-            }
+            [self didReceiveIPLocation:msg];
         }
         
         if (self.currentCircuits.count == 0 || [self.currentCircuits objectAtIndex:0].nodes.count == 0) {
@@ -641,6 +415,273 @@ connLastAutoIPStack = _connLastAutoIPStack
 - (void)netsocketDataSent:(ULINetSocket*)inNetSocket { }
 
 
+#pragma mark -
+#pragma mark Tor socket events
+
+- (void)controlPortDidAuthenticateSuccessfully {
+#ifdef DEBUG
+    NSLog(@"[Tor] Control Port Authenticated Successfully");
+#endif
+    
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    [appDelegate.logViewController logInfo:@"[Tor] Control Port Authenticated Successfully"];
+    _controllerIsAuthenticated = YES;
+    
+    [_mSocket writeString:@"getinfo status/bootstrap-phase\n" encoding:NSUTF8StringEncoding];
+    _torCheckLoopTimer = [NSTimer scheduledTimerWithTimeInterval:0.15f
+                                                          target:self
+                                                        selector:@selector(checkTor)
+                                                        userInfo:nil
+                                                         repeats:NO];
+}
+
+- (void)controlPortDidGetUnrecognizedPostAuthenticateMessage:(NSString *)msgIn {
+#ifdef DEBUG
+    NSLog(@"[Tor] Control Port: Got unknown post-authenticate message %@", msgIn);
+#endif
+    // Could not authenticate with control port. This is the worst thing
+    // that can happen on app init and should fail badly so that the
+    // app does not just hang there.
+    if (didFirstConnect) {
+        // If we've already performed initial connect, wait a couple
+        // seconds and try to HUP tor.
+        if (_torCheckLoopTimer != nil) {
+            [_torCheckLoopTimer invalidate];
+        }
+        if (_torStatusTimeoutTimer != nil) {
+            [_torStatusTimeoutTimer invalidate];
+        }
+        _torCheckLoopTimer = [NSTimer scheduledTimerWithTimeInterval:2.5f
+                                                              target:self
+                                                            selector:@selector(hupTor)
+                                                            userInfo:nil
+                                                             repeats:NO];
+    } else {
+        // Otherwise, crash because we don't know the app's current state
+        // (since it hasn't totally initialized yet).
+        exit(0);
+    }
+}
+
+- (void)controlPortDidReceiveStatusOK {
+#ifdef DEBUG
+    NSLog(@"[Tor] Control Port: orconn-status: OK");
+#endif
+    _torCheckLoopTimer = [NSTimer scheduledTimerWithTimeInterval:5.0f
+                                                          target:self
+                                                        selector:@selector(checkTor)
+                                                        userInfo:nil
+                                                         repeats:NO];
+}
+
+- (void)controlPortDidReceiveStatusNotOK:(NSString *)msgIn {
+    NSLog(@"[Tor] Control Port: orconn-status: NOT OK\n    %@",
+          [msgIn
+           stringByReplacingOccurrencesOfString:@"\n"
+           withString:@"\n    "]
+          );
+    
+    AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"[Tor] Control Port: orconn-status: NOT OK\n    %@", [msgIn stringByReplacingOccurrencesOfString:@"\n" withString:@"\n    "]]];
+    
+    [self hupTor];
+}
+
+- (void)bootstrapPhaseDidEndWithMessage:(NSString *)msgIn {
+    didFirstConnect = YES;
+    
+    AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    TabsViewController *tvc = appDelegate.tabsViewController;
+    [tvc renderTorStatus:msgIn];
+    
+    JFMinimalNotification *minimalNotification = [JFMinimalNotification notificationWithStyle:JFMinimalNotificationStyleDefault title:NSLocalizedString(@"Initializing Tor circuit…", nil) subTitle:NSLocalizedString(@"First page load may be slow to start.", nil) dismissalDelay:4.0];
+    minimalNotification.layer.zPosition = MAXFLOAT;
+    [tvc.view addSubview:minimalNotification];
+    [minimalNotification show];
+    
+    // See "checkTor call in middle of app" a little bit below.
+    _torCheckLoopTimer = [NSTimer scheduledTimerWithTimeInterval:5.0f
+                                                          target:self
+                                                        selector:@selector(checkTor)
+                                                        userInfo:nil
+                                                         repeats:NO];
+}
+
+- (void)didReceiveCircuitStatus:(NSMutableArray *)guards {
+    // If the value is correct, the first object should be "250+entry-guards="
+    // The next ones should be "$<ID>~<NAME> <STATUS>"
+    [guards removeObjectAtIndex:0];
+    
+    // Keep, for each circuit, its ID and order them
+    NSMutableArray *circuitOrder = [[NSMutableArray alloc] init];
+    
+    for (__strong NSString *circuitInfo in guards) {
+        NSMutableArray<TorNode *> *currentNodes = [[NSMutableArray alloc] init];
+        
+        // Format should be "<ID> <STATUS> <LIST_OF_NODES> BUILD_FLAGS=<FLAGS> PURPOSE=<PURPOSE> TIME_CREATED=<ISO8601_TIME>"
+        NSArray *info = [circuitInfo componentsSeparatedByString:@" "]; // Infos are separated by spaces
+        
+        // If there isn't enough info, this isn't a circuit
+        if ([info count] < 6)
+            continue;
+        
+        NSNumber *circuitID = [NSNumber numberWithInt:[[info objectAtIndex:0] intValue]];
+        
+        // Find the proper index for this node for the array to be ordered by ID
+        int index = 0;
+        for (int i = 0; i < [circuitOrder count]; i++) {
+            if ([[circuitOrder objectAtIndex:i] objectAtIndex:0] > circuitID)
+                break;
+            index++;
+        }
+        
+        // Find the build flags and convert them to a list
+        NSString *flags = [[info objectAtIndex:3] substringFromIndex:@"BUILD_FLAGS=".length];
+        NSArray *buildFlags = [flags componentsSeparatedByString:@","]; // Flags are separated by comas
+        
+        // Find the circuit's purpose
+        NSString *purpose = [[info objectAtIndex:4] substringFromIndex:@"PURPOSE=".length];
+        
+        // Find the created time and convert it to a date
+        NSString *timeCreated = [[info objectAtIndex:5] substringFromIndex:@"TIME_CREATED=".length];
+        NSDate *dateCreated = [self parseISO8601Time:timeCreated];
+        
+        TorCircuit *circuit = [[TorCircuit alloc] init];
+        [circuit setID:circuitID];
+        [circuit setBuildFlags:buildFlags];
+        [circuit setPurpose:purpose];
+        [circuit setTimeCreated:dateCreated];
+        [circuit setIsCurrentCircuit:NO];
+        [circuitOrder insertObject:[NSArray arrayWithObjects:circuitID, circuit, nil] atIndex:index];
+        
+        NSString *nodes = [info objectAtIndex:2];
+        NSRange r1 = [nodes rangeOfString:@"$"];
+        NSRange r2 = [nodes rangeOfString:@"~"];
+        NSRange idRange = NSMakeRange(r1.location + r1.length, r2.location - r1.location - r1.length);
+        
+        while (r1.location != NSNotFound && r2.location != NSNotFound && idRange.location != NSNotFound) {
+            NSString *nodeID = [nodes substringWithRange:idRange];
+            
+            // Add node to the array
+            TorNode *node = [[TorNode alloc] init];
+            [node setID:nodeID];
+            [currentNodes addObject:node];
+            
+            // Get IP for the current exit
+            [_mSocket writeString:[NSString stringWithFormat:@"getinfo ns/id/%@\n", nodeID] encoding:NSUTF8StringEncoding];
+            
+            // Move on to next node (if it exists)
+            nodes = [nodes substringFromIndex:r2.location + 1];
+            r1 = [nodes rangeOfString:@"$"];
+            r2 = [nodes rangeOfString:@"~"];
+            idRange = NSMakeRange(r1.location + r1.length, r2.location - r1.location - r1.length);
+        }
+        
+        [circuit setNodes:currentNodes];
+    }
+    
+    // Add all the circuits to the array in the right order
+    for (NSArray *circuitInfo in circuitOrder) {
+        [_currentCircuits addObject:[circuitInfo objectAtIndex:1]];
+    }
+}
+
+- (void)didReceiveNodeInfo:(NSString *)info {
+    NSMutableArray *infoArray = [[info componentsSeparatedByString: @"\r\n"] mutableCopy];
+    
+    if ([infoArray count] > 1) {
+        /* Extract the node's ID */
+        // Format should be "<ID>="
+        NSString *tmp = [infoArray objectAtIndex:0];
+        NSString *nodeID = [tmp substringToIndex:[tmp length] - 1]; // Get rid of the "="
+        
+        /* Find the matching nodes */
+        NSMutableArray<TorNode *> *correspondingNodes = [[NSMutableArray alloc] init];
+        for (TorCircuit *circuit in self.currentCircuits) {
+            for (TorNode *node in circuit.nodes) {
+                if ([node.ID isEqualToString:nodeID]) {
+                    [correspondingNodes addObject:node];
+                    break;
+                }
+            }
+        }
+        
+        if ([correspondingNodes count] == 0)
+            return; // We don't care about this node since it's not in self.currentNodes
+        
+        /* Extract the node's name and IP */
+        // Format should be "r <NAME> C3ZsrjOVPuRpCX2dprynFoY/jrQ awageVh+KgvJYAgPcG5kruCcJPo <TIME> <IP> 9001 9030"
+        // e.g. "Iroha C3ZsrjOVPuRpCX2dprynFoY/jrQ awageVh+KgvJYAgPcG5kruCcJPo 2016-05-22 05:04:19 185.21.217.32 9001 9030"
+        tmp = [[infoArray objectAtIndex:1] substringFromIndex:2]; // Get rid of the "r "
+        NSString *nodeName = [tmp substringToIndex:[tmp rangeOfString:@" "].location];
+        
+        NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" options:NSRegularExpressionCaseInsensitive error:nil];
+        NSArray *matches = [regex matchesInString:tmp options:0 range:NSMakeRange(0, [tmp length])];
+        NSString *nodeIP = [tmp substringWithRange:[[matches objectAtIndex:0] rangeAtIndex:0]];
+        
+        for (TorNode *node in correspondingNodes) {
+            [node setName:nodeName];
+            [node setIP:nodeIP];
+        }
+        
+        // Find the node's country
+        [_mSocket writeString:[NSString stringWithFormat:@"getinfo ip-to-country/%@\n", nodeIP] encoding:NSUTF8StringEncoding];
+        
+        /* Extract the node's version */
+        if ([infoArray count] <= 2 || [[infoArray objectAtIndex:2] length] <= 2)
+            return;
+        
+        // Format should be "s <VERSION_INFO>"
+        tmp = [[infoArray objectAtIndex:2] substringFromIndex:2]; // Get rid of the "s ="
+        for (TorNode *node in correspondingNodes) {
+            [node setVersion:tmp];
+        }
+        
+        /* Extract the node's bandwidth */
+        if ([infoArray count] <= 3 || [[infoArray objectAtIndex:3] length] <= 12)
+            return;
+        
+        // Format should be "w Bandwidth=<BANDWIDTH>"
+        tmp = [[infoArray objectAtIndex:3] substringFromIndex:12]; // Get rid of the "w Bandwidth="
+        for (TorNode *node in correspondingNodes) {
+            [node setBandwidth:[NSNumber numberWithInt:[tmp intValue]]];
+        }
+    }
+}
+
+- (void)didReceiveIPLocation:(NSString *)msg {
+    NSMutableArray *infoArray = [[msg componentsSeparatedByString: @"\r\n"] mutableCopy];
+    
+    if ([infoArray count] > 1) {
+        /* Extract the node's IP */
+        // Format should be "<IP>=<COUNTRY>"
+        NSString *tmp = [infoArray objectAtIndex:0];
+        NSString *nodeIP = [tmp substringToIndex:[tmp rangeOfString:@"="].location];
+        
+        /* Find the matching nodes */
+        NSMutableArray<TorNode *> *correspondingNodes = [[NSMutableArray alloc] init];
+        for (TorCircuit *circuit in self.currentCircuits) {
+            for (TorNode *node in circuit.nodes) {
+                if ([node.IP isEqualToString:nodeIP]) {
+                    [correspondingNodes addObject:node];
+                    break;
+                }
+            }
+        }
+        
+        if ([correspondingNodes count] == 0)
+            return; // We don't care about this node since it's not in self.currentNodes
+        
+        /* Extract the node's country */
+        // Format should be "<IP>=<COUNTRY>"
+        for (TorNode *node in correspondingNodes) {
+            [node setCountry:[tmp substringFromIndex:[tmp rangeOfString:@"="].location + 1]];
+        }
+    }
+}
+
+
+#pragma mark -
 #pragma mark - Helper methods
 
 - (NSDate *)parseISO8601Time:(NSString *)date {
