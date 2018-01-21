@@ -124,7 +124,6 @@ connLastAutoIPStack = _connLastAutoIPStack
     // Reset circuits info
     _currentCircuits = [[NSMutableArray alloc] init];
 
-    // getinfo orconn-status
     [_mSocket writeString:@"getinfo circuit-status\n" encoding:NSUTF8StringEncoding];
 }
 
@@ -395,16 +394,6 @@ connLastAutoIPStack = _connLastAutoIPStack
         for (NSString *msg in requests) {
             [self didReceiveIPLocation:msg];
         }
-        
-        if (self.currentCircuits.count == 0 || [self.currentCircuits objectAtIndex:0].nodes.count == 0) {
-            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-            [appDelegate.logViewController logInfo:@"[Tor] Circuit nodes not found"];
-        } else {
-            AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-            TorNode *exitNode = [[[self.currentCircuits firstObject] nodes] lastObject];
-            [appDelegate.logViewController logInfo:[NSString stringWithFormat:@"[Tor] Found exit node's IP: %@ (%@)", exitNode.IP, exitNode.country]];
-        }
-        
     } else {
 #ifdef DEBUG
         NSLog(@"msgIn: %@", msgIn);

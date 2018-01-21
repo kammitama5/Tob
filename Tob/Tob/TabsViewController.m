@@ -925,12 +925,8 @@ static const int kNewIdentityMaxTries = 3;
     _IPAddressLabel = [[UILabel alloc] initWithFrame:CGRectMake(logButton.frame.origin.x, circuitInfoButton.frame.origin.y, 250, circuitInfoButton.frame.size.height)];
     [_IPAddressLabel setAdjustsFontSizeToFitWidth:YES];
     
-    if (_IPAddress)
-        _IPAddressLabel.text = [NSString stringWithFormat:NSLocalizedString(@"IP: %@", nil), _IPAddress];
-    else {
-        _IPAddressLabel.text = NSLocalizedString(@"IP: Loading…", nil);
-        [self getIPAddress];
-    }
+    _IPAddressLabel.text = NSLocalizedString(@"IP: Loading…", nil);
+    [self getIPAddress];
     
     _IPAddressLabel.textAlignment = NSTextAlignmentLeft;
     [_torPanelView addSubview:_IPAddressLabel];
