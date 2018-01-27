@@ -6,6 +6,7 @@
 
 #import "TorWrapper.h"
 #import "AppDelegate.h"
+#import "Ipv6Tester.h"
 
 @implementation TorWrapper
 @synthesize tor;
@@ -58,49 +59,52 @@
      ]
      */
     
-    conf.arguments = [NSArray arrayWithObjects:
-                      @"-f", base_torrc,
-                      @"--clientonly", @"1",
-                      @"--socksport", socksPortStr,
-                      @"--controlport", controlPortStr,
-                      @"--log", @"notice file /dev/null",
-                      @"--geoipfile", geoip,
-                      @"--geoipv6file", geoip6,
-                      // @"--clientuseipv4", @"1",
-                      // @"--clientuseipv6", @"1",
-                      // @"--ClientPreferIPv6ORPort", @"auto",
-                      // @"--ClientTransportPlugin", @"obfs4 socks5 127.0.0.1:47351",
-                      // @"--ClientTransportPlugin", @"meek_lite socks5 127.0.0.1:47352",
-                      nil];
+    NSMutableArray *arguments = [[NSMutableArray alloc] initWithObjects:@"-f", base_torrc,
+                            @"--clientonly", @"1",
+                            @"--socksport", socksPortStr,
+                            @"--controlport", controlPortStr,
+                            @"--log", @"notice file /dev/null",
+                            @"--geoipfile", geoip,
+                            @"--geoipv6file", geoip6,
+                            @"--ClientTransportPlugin", @"obfs4 socks5 127.0.0.1:47351",
+                            @"--ClientTransportPlugin", @"meek_lite socks5 127.0.0.1:47352",
+                            nil];
     
-    /*
-    conf.arguments = [NSArray arrayWithObjects:
-                      @"--controlport", controlPortStr,
-                      @"--socksport", socksPortStr,
-                      @"--geoipfile", geoip,
-                      @"--geoipv6file", geoip6,
-                      @"--log",
-#ifndef DEBUG
-                      @"err file /dev/null",
-#endif
+    NSMutableDictionary *settings = appDelegate.getSettings;
+    NSInteger ipSetting = [[settings valueForKey:@"tor_ipv4v6"] integerValue];
+    NSInteger ipv6_status = [Ipv6Tester ipv6_status]; // Always call this to make sure the IP info is logged
+    if (ipSetting == OB_IPV4V6_AUTO) {
+        if (ipv6_status == TOR_IPV6_CONN_ONLY) {
+            [arguments addObjectsFromArray:@[@"--ClientPreferIPv6ORPort", @"1",
+                                             @"--ClientPreferIPv6DirPort", @"1",
+                                             @"--ClientUseIPv4", @"0",
+                                             @"--ClientUseIPv6", @"1"]];
+        } else if (ipv6_status == TOR_IPV6_CONN_DUAL) {
+            [arguments addObjectsFromArray:@[@"--ClientPreferIPv6ORPort", @"auto",
+                                             @"--ClientPreferIPv6DirPort", @"auto",
+                                             @"--ClientUseIPv4", @"1",
+                                             @"--ClientUseIPv6", @"1"]];
+        } else {
+            [arguments addObjectsFromArray:@[@"--ClientPreferIPv6ORPort", @"0",
+                                             @"--ClientPreferIPv6DirPort", @"0",
+                                             @"--ClientUseIPv4", @"1",
+                                             @"--ClientUseIPv6", @"0"]];
+        }
+    } else if (ipSetting == OB_IPV4V6_V6ONLY) {
+        [arguments addObjectsFromArray:@[@"--ClientPreferIPv6ORPort", @"1",
+                                         @"--ClientPreferIPv6DirPort", @"1",
+                                         @"--ClientUseIPv4", @"0",
+                                         @"--ClientUseIPv6", @"1"]];
+    } else {
+        [arguments addObjectsFromArray:@[@"--ClientPreferIPv6ORPort", @"auto",
+                                         @"--ClientPreferIPv6DirPort", @"auto"]];
+    }
+    
 #ifdef DEBUG
-                      @"notice stdout",
+    NSLog(@"Starting Tor with arguments %@", arguments);
 #endif
-                      @"-f", base_torrc,
-                      nil];
-     */
     
-    /*
-    conf.arguments = [NSArray arrayWithObjects:
-                      @"--ignore-missing-torrc",
-                      @"--clientonly", "1",
-                      @"--socksport", "39050",
-                      @"--controlport", "127.0.0.1:39060",
-                      @"--log", "notice stdout",
-                      @"--clientuseipv4", "1",
-                      @"--clientuseipv6", "1",
-                      nil];
-    */
+    conf.arguments = arguments;
     
     tor = [[TORThread alloc] initWithConfiguration:conf];
     [tor start];
