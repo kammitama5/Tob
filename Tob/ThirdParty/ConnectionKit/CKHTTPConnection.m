@@ -389,7 +389,7 @@
     }
     
     CFHTTPMessageSetHeaderFieldValue(result,
-                                     (__bridge CFStringRef)@"DNT",
+                                     (__bridge CFStringRef)@"DNT: ",
                                      (__bridge CFStringRef)[NSString stringWithFormat:@"%d",
                                                             dntValue]);
 #if DEBUG
