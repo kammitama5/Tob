@@ -592,8 +592,9 @@ void HandleSignal(int signal) {
         [Bridge updateBridgeLines:[Bridge defaultMeekAzure]];
     }
     NSInteger ipSetting = [[settings valueForKey:@"tor_ipv4v6"] integerValue];
-    NSInteger ipv6_status = [Ipv6Tester ipv6_status]; // Always call this to make sure the IP info is logged
     if (ipSetting == OB_IPV4V6_AUTO) {
+        NSInteger ipv6_status = [Ipv6Tester ipv6_status];
+
         if (ipv6_status == TOR_IPV6_CONN_ONLY) {
             // TODO: eventually get rid of "UseMicrodescriptors 0" workaround
             //       (because it is very slow) pending this ticket:
@@ -1015,9 +1016,10 @@ void HandleSignal(int signal) {
         [str appendString:@"navigator.__proto__ = __originalNavigator;"];
         [str appendString:@"navigator.__defineGetter__('appCodeName',function(){return 'Mozilla';});"];
         [str appendString:@"navigator.__defineGetter__('appName',function(){return 'Netscape';});"];
-        [str appendString:@"navigator.__defineGetter__('appVersion',function(){return '5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7';});"];
+        [str appendString:@"navigator.__defineGetter__('appVersion',function(){return '5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/604.5.6 (KHTML, like Gecko) Version/11.0.3 Safari/604.5.6';});"];
         [str appendString:@"navigator.__defineGetter__('platform',function(){return 'MacIntel';});"];
-        [str appendString:@"navigator.__defineGetter__('userAgent',function(){return 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7';});"];
+        [str appendString:@"navigator.__defineGetter__('language',function(){return 'en-US,en;q=0.5';});"];
+        [str appendString:@"navigator.__defineGetter__('userAgent',function(){return 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/604.5.6 (KHTML, like Gecko) Version/11.0.3 Safari/604.5.6';});"];
     } else if (uaspoof == UA_SPOOF_WIN7_TORBROWSER) {
         [str appendString:@"var __originalNavigator = navigator;"];
         [str appendString:@"navigator = new Object();"];
@@ -1026,26 +1028,28 @@ void HandleSignal(int signal) {
         [str appendString:@"navigator.__defineGetter__('appName',function(){return 'Netscape';});"];
         [str appendString:@"navigator.__defineGetter__('appVersion',function(){return '5.0 (Windows)';});"];
         [str appendString:@"navigator.__defineGetter__('platform',function(){return 'Win32';});"];
-        [str appendString:@"navigator.__defineGetter__('language',function(){return 'en-US';});"];
-        [str appendString:@"navigator.__defineGetter__('userAgent',function(){return 'Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0';});"];
+        [str appendString:@"navigator.__defineGetter__('language',function(){return 'en-US,en;q=0.5';});"];
+        [str appendString:@"navigator.__defineGetter__('userAgent',function(){return 'Mozilla/5.0 (Windows NT 6.1; rv:52.0) Gecko/20100101 Firefox/52.0';});"];
     } else if (uaspoof == UA_SPOOF_IPHONE) {
         [str appendString:@"var __originalNavigator = navigator;"];
         [str appendString:@"navigator = new Object();"];
         [str appendString:@"navigator.__proto__ = __originalNavigator;"];
         [str appendString:@"navigator.__defineGetter__('appCodeName',function(){return 'Mozilla';});"];
         [str appendString:@"navigator.__defineGetter__('appName',function(){return 'Netscape';});"];
-        [str appendString:@"navigator.__defineGetter__('appVersion',function(){return '5.0 (iPhone; CPU iPhone OS 9_3 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13E230 Safari/601.1';});"];
+        [str appendString:@"navigator.__defineGetter__('appVersion',function(){return '5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A356 Safari/604.1';});"];
         [str appendString:@"navigator.__defineGetter__('platform',function(){return 'iPhone';});"];
-        [str appendString:@"navigator.__defineGetter__('userAgent',function(){return 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_3 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13E230 Safari/601.1';});"];
+        [str appendString:@"navigator.__defineGetter__('language',function(){return 'en-US,en;q=0.5';});"];
+        [str appendString:@"navigator.__defineGetter__('userAgent',function(){return 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A356 Safari/604.1';});"];
     } else if (uaspoof == UA_SPOOF_IPAD) {
         [str appendString:@"var __originalNavigator = navigator;"];
         [str appendString:@"navigator = new Object();"];
         [str appendString:@"navigator.__proto__ = __originalNavigator;"];
         [str appendString:@"navigator.__defineGetter__('appCodeName',function(){return 'Mozilla';});"];
         [str appendString:@"navigator.__defineGetter__('appName',function(){return 'Netscape';});"];
-        [str appendString:@"navigator.__defineGetter__('appVersion',function(){return '5.0 (iPad; CPU OS 9_3 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13E237 Safari/601.1';});"];
+        [str appendString:@"navigator.__defineGetter__('appVersion',function(){return '5.0 (iPad; CPU OS 11_0 like Mac OS X) AppleWebKit/604.1.25 (KHTML, like Gecko) Version/11.0 Mobile/15A5304j Safari/604.1';});"];
         [str appendString:@"navigator.__defineGetter__('platform',function(){return 'iPad';});"];
-        [str appendString:@"navigator.__defineGetter__('userAgent',function(){return 'Mozilla/5.0 (iPad; CPU OS 9_3 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13E237 Safari/601.1';});"];
+        [str appendString:@"navigator.__defineGetter__('language',function(){return 'en-US,en;q=0.5';});"];
+        [str appendString:@"navigator.__defineGetter__('userAgent',function(){return 'Mozilla/5.0 (iPad; CPU OS 11_0 like Mac OS X) AppleWebKit/604.1.25 (KHTML, like Gecko) Version/11.0 Mobile/15A5304j Safari/604.1';});"];
     }
     
     Byte activeContent = [[self.getSettings valueForKey:@"javascript"] integerValue];
@@ -1062,13 +1066,13 @@ void HandleSignal(int signal) {
 - (NSString *)customUserAgent {
     Byte uaspoof = [[self.getSettings valueForKey:@"uaspoof"] integerValue];
     if (uaspoof == UA_SPOOF_SAFARI_MAC) {
-        return @"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7";
+        return @"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/604.5.6 (KHTML, like Gecko) Version/11.0.3 Safari/604.5.6";
     } else if (uaspoof == UA_SPOOF_WIN7_TORBROWSER) {
-        return @"Mozilla/5.0 (Windows NT 6.1; rv:45.0) Gecko/20100101 Firefox/45.0";
+        return @"Mozilla/5.0 (Windows NT 6.1; rv:52.0) Gecko/20100101 Firefox/52.0";
     } else if (uaspoof == UA_SPOOF_IPHONE) {
-        return @"Mozilla/5.0 (iPhone; CPU iPhone OS 9_3 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13E230 Safari/601.1";
+        return @"Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A356 Safari/604.1";
     } else if (uaspoof == UA_SPOOF_IPAD) {
-        return @"Mozilla/5.0 (iPad; CPU OS 9_3 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13E237 Safari/601.1";
+        return @"Mozilla/5.0 (iPad; CPU OS 11_0 like Mac OS X) AppleWebKit/604.1.25 (KHTML, like Gecko) Version/11.0 Mobile/15A5304j Safari/604.1";
     }
     return nil;
 }
