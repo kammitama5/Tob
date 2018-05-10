@@ -270,7 +270,7 @@ connLastAutoIPStack = _connLastAutoIPStack
     [self hupTor];
 }
 
-- (void) disableNetwork {
+- (void)disableNetwork {
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     [[appDelegate tabsViewController] stopLoading];
     [[appDelegate tabsViewController] setTabsNeedForceRefresh:YES];
@@ -524,15 +524,27 @@ connLastAutoIPStack = _connLastAutoIPStack
             index++;
         }
         
+        /* Sometimes, the info doesn't containe <FLAG_NAME>= (when Tor just finished starting) */
         // Find the build flags and convert them to a list
-        NSString *flags = [[info objectAtIndex:3] substringFromIndex:@"BUILD_FLAGS=".length];
+        NSString *flags = [info objectAtIndex:3];
+
+        if ([flags rangeOfString:@"BUILD_FLAGS="].location != NSNotFound)
+            flags = [flags substringFromIndex:@"BUILD_FLAGS=".length];
+
         NSArray *buildFlags = [flags componentsSeparatedByString:@","]; // Flags are separated by comas
         
         // Find the circuit's purpose
-        NSString *purpose = [[info objectAtIndex:4] substringFromIndex:@"PURPOSE=".length];
+        NSString *purpose = [info objectAtIndex:4];
+
+        if ([purpose rangeOfString:@"PURPOSE="].location != NSNotFound)
+            purpose = [purpose substringFromIndex:@"PURPOSE=".length];
         
         // Find the created time and convert it to a date
-        NSString *timeCreated = [[info objectAtIndex:5] substringFromIndex:@"TIME_CREATED=".length];
+        NSString *timeCreated = [info objectAtIndex:5];
+
+        if ([timeCreated rangeOfString:@"TIME_CREATED="].location != NSNotFound)
+            timeCreated = [timeCreated substringFromIndex:@"TIME_CREATED=".length];
+
         NSDate *dateCreated = [self parseISO8601Time:timeCreated];
         
         TorCircuit *circuit = [[TorCircuit alloc] init];
@@ -621,7 +633,10 @@ connLastAutoIPStack = _connLastAutoIPStack
             return;
         
         // Format should be "s <VERSION_INFO>"
-        tmp = [[infoArray objectAtIndex:2] substringFromIndex:2]; // Get rid of the "s ="
+        tmp = [infoArray objectAtIndex:2]; // Get rid of the "s ="
+        if ([tmp rangeOfString:@"s "].location != NSNotFound)
+            tmp = [tmp substringFromIndex:2]; // Get rid of the "s ="
+
         for (TorNode *node in correspondingNodes) {
             [node setVersion:tmp];
         }

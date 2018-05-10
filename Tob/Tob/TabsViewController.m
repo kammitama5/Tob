@@ -884,9 +884,6 @@ static const int kNewIdentityMaxTries = 3;
 }
 
 - (void)displayTorPanel {
-    AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
-    [appDelegate.tor requestTorInfo];
-    
     _torPanelView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 300, 120)];
     _torPanelView.center = self.view.center;
     _torPanelView.layer.cornerRadius = 5.0f;
@@ -939,6 +936,7 @@ static const int kNewIdentityMaxTries = 3;
     [newIdentityButton addTarget:self action:@selector(newIdentity) forControlEvents:UIControlEventTouchUpInside];
     [_torPanelView addSubview:newIdentityButton];
     
+    AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
     NSMutableDictionary *settings = appDelegate.getSettings;
     if (![[settings valueForKey:@"night-mode"] boolValue]) {
         _torPanelView.backgroundColor = [UIColor groupTableViewBackgroundColor];
@@ -991,6 +989,9 @@ static const int kNewIdentityMaxTries = 3;
 }
 
 - (void)showCircuitInfo {
+    AppDelegate *appDelegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
+    [appDelegate.tor requestTorInfo];
+
     TorCircuitTableViewController *infoTVC = [[TorCircuitTableViewController alloc] initWithStyle:UITableViewStyleGrouped];
     UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:infoTVC];
     [self presentViewController:navigationController animated:YES completion:nil];
