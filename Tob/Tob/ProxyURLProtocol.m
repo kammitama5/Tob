@@ -236,9 +236,9 @@
                 [mHeaders setObject:response.allHeaderFields[h] forKey:h];
             }
         }
-        [mHeaders setObject:@"script-src 'none';media-src 'none';object-src 'none';connect-src 'none';font-src 'none';sandbox allow-forms allow-top-navigation;style-src 'unsafe-inline' *;"
+        [mHeaders setObject:@"connect-src 'none'; default-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; sandbox allow-forms allow-top-navigation; script-src 'none'; style-src 'unsafe-inline' *; img-src 'unsafe-inline' *; report-uri;"
                      forKey:@"Content-Security-Policy"];
-        [mHeaders setObject:@"script-src 'none';media-src 'none';object-src 'none';connect-src 'none';font-src 'none';sandbox allow-forms allow-top-navigation;style-src 'unsafe-inline' *;"
+        [mHeaders setObject:@"connect-src 'none'; default-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; sandbox allow-forms allow-top-navigation; script-src 'none'; style-src 'unsafe-inline' *; img-src 'unsafe-inline' *; report-uri;"
                      forKey:@"X-Webkit-CSP"];
         [mHeaders setObject:@"max-age=0, no-cache, no-store, must-revalidate"
                      forKey:@"Cache-Control"];
