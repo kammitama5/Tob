@@ -72,13 +72,22 @@
     
     NSMutableDictionary *settings = appDelegate.getSettings;
     NSInteger ipSetting = [[settings valueForKey:@"tor_ipv4v6"] integerValue];
+    NSInteger bridgeSetting = [[settings valueForKey:@"bridges"] integerValue];
+
     NSInteger ipv6_status = [Ipv6Tester ipv6_status]; // Always call this to make sure the IP info is logged
     if (ipSetting == OB_IPV4V6_AUTO) {
         if (ipv6_status == TOR_IPV6_CONN_ONLY) {
             [arguments addObjectsFromArray:@[@"--ClientPreferIPv6ORPort", @"1",
                                              @"--ClientPreferIPv6DirPort", @"1",
-                                             @"--ClientUseIPv4", @"0",
                                              @"--ClientUseIPv6", @"1"]];
+            
+            // Leave IPv4 if bridges are on
+            if (bridgeSetting == TOR_BRIDGES_NONE) {
+                [arguments addObjectsFromArray:@[@"--ClientUseIPv4", @"0"]];
+            } else {
+                [arguments addObjectsFromArray:@[@"--ClientUseIPv4", @"1"]];
+            }
+            
         } else if (ipv6_status == TOR_IPV6_CONN_DUAL) {
             [arguments addObjectsFromArray:@[@"--ClientPreferIPv6ORPort", @"auto",
                                              @"--ClientPreferIPv6DirPort", @"auto",
