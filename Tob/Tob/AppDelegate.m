@@ -599,7 +599,14 @@ void HandleSignal(int signal) {
             // TODO: eventually get rid of "UseMicrodescriptors 0" workaround
             //       (because it is very slow) pending this ticket:
             //       https://trac.torproject.org/projects/tor/ticket/20996
-            [myHandle writeData:[@"\nClientUseIPv4 0\nClientUseIPv6 1\nUseMicrodescriptors 0\nClientPreferIPv6ORPort 1\nClientPreferIPv6DirPort 1\n" dataUsingEncoding:NSUTF8StringEncoding]];
+            [myHandle writeData:[@"\nClientUseIPv6 1\nUseMicrodescriptors 0\nClientPreferIPv6ORPort 1\nClientPreferIPv6DirPort 1\n" dataUsingEncoding:NSUTF8StringEncoding]];
+            
+            // Leave IPv4 if bridges are on
+            if (bridgeSetting == TOR_BRIDGES_NONE) {
+                [myHandle writeData:[@"ClientUseIPv4 0\n" dataUsingEncoding:NSUTF8StringEncoding]];
+            } else {
+                [myHandle writeData:[@"ClientUseIPv4 1\n" dataUsingEncoding:NSUTF8StringEncoding]];
+            }
         } else if (ipv6_status == TOR_IPV6_CONN_DUAL) {
             [myHandle writeData:[@"\nClientUseIPv4 1\nClientUseIPv6 1\n" dataUsingEncoding:NSUTF8StringEncoding]];
         } else {
@@ -621,7 +628,6 @@ void HandleSignal(int signal) {
     if (mutableFetchResults == nil) {
         
     } else if ([mutableFetchResults count] > 0) {
-        
         [myHandle writeData:[@"UseBridges 1\n" dataUsingEncoding:NSUTF8StringEncoding]];
         for (Bridge *bridge in mutableFetchResults) {
             if ([bridge.conf containsString:@"obfs4"] || [bridge.conf containsString:@"meek_lite"]  || [bridge.conf containsString:@"obfs2"]  || [bridge.conf containsString:@"obfs3"]  || [bridge.conf containsString:@"scramblesuit"] ) {
