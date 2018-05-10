@@ -1426,8 +1426,8 @@
     UIAlertAction *okAction = [UIAlertAction actionWithTitle:NSLocalizedString(@"Add", nil) style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
         NSString *domain = alertController.textFields.firstObject.text;
         [URLBlocker addDomainToWhitelist:domain];
-        domains = [[URLBlocker whitelistedDomains] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
-        [self searchForText:searchController.searchBar.text];
+        self->domains = [[URLBlocker whitelistedDomains] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+        [self searchForText:self->searchController.searchBar.text];
 
         [self.tableView performSelectorOnMainThread:@selector(reloadData) withObject:nil waitUntilDone:NO];
     }];
@@ -1813,7 +1813,7 @@
     frame.size = size;
     
     [coordinator animateAlongsideTransition:^(id<UIViewControllerTransitionCoordinatorContext> context) {
-        _webView.frame = frame;
+        self->_webView.frame = frame;
     } completion:nil];
 }
 
