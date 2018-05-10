@@ -60,8 +60,10 @@ iOSInjectionProject/
 
 .DS_Store
 
-Tob/ThirdParty/.DS_Store
+Tob/.DS_Store
 
 Tob/Tob/.DS_Store
+
+Tob/ThirdParty/.DS_Store
 
 Tob/Tob/Assets.xcassets/.DS_Store
