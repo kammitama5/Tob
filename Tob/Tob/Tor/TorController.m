@@ -137,6 +137,10 @@ connLastAutoIPStack = _connLastAutoIPStack
     
     AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
     [appDelegate.logViewController logInfo:@"[Tor] Requesting new identity"];
+    
+    // For restart to update IP address
+    [self disableNetwork];
+    [self enableNetwork];
 }
 
 - (void)setCurrentVisibleIP:(NSString *)currentVisibleIP {
