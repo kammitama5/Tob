@@ -414,7 +414,7 @@
                 NSMutableDictionary *settings = appDelegate.getSettings;
                 
                 if ([[alert.textFields.firstObject text] length] == 0) {
-                    [settings setValue:@"https://duckduckgo.com" forKey:@"homepage"]; // DEFAULT HOMEPAGE
+                    [settings setValue:@"https://duckduckgo.com/html" forKey:@"homepage"]; // DEFAULT HOMEPAGE
                 } else {
                     NSString *h = [alert.textFields.firstObject text];
                     if ( (![h hasPrefix:@"http:"]) && (![h hasPrefix:@"https:"]) && (![h hasPrefix:@"tob:"]) && (![h hasPrefix:@"about:"]) )

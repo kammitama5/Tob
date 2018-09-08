@@ -739,7 +739,7 @@ void HandleSignal(int signal) {
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
     
     if ([d objectForKey:@"homepage"] == nil) {
-        [d setObject:@"https://duckduckgo.com" forKey:@"homepage"]; // DEFAULT HOMEPAGE
+        [d setObject:@"https://duckduckgo.com/html" forKey:@"homepage"]; // DEFAULT HOMEPAGE
         update = YES;
     }
     if ([d objectForKey:@"cookies"] == nil) {
