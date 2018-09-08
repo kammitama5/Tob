@@ -139,7 +139,7 @@
 "IPv4-only detected" = "IPv4 uniquement";
 "Could not detect IP stack state. Using IPv4-only." = "Détection automatique impossible. IPv4 utilisé par défaut.";
 "\n\nDefault: Automatic IPv4/IPv6." = "\n\nValeur par défaut : Détection automatique.";
-"The content blocker ruleset contains a list of rules used to prevent ads from loading. This improves security and privacy while saving bandwidth." = "Les règles de blocage sont des règles utiliser pour empêcher le chargement de publicités. Celà permet d'améliorent la sécurité, de protéger la vie privée et d'accélérer le chargement des pages.";
+"The content blocker ruleset contains a list of rules used to prevent ads from loading. This improves security and privacy while saving bandwidth." = "Les règles de blocage sont des règles utilisées pour empêcher le chargement de publicités. Cela permet d'améliorer la sécurité, de protéger la vie privée et d'accélérer le chargement des pages.";
 "Enable" = "Activer";
 "Disable" = "Désactiver";
 "Disable temporarly" = "Désactiver temporairement";
