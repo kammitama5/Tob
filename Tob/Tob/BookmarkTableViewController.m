@@ -100,13 +100,6 @@
     [self.tableView reloadData];
 }
 
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-    self.bookmarksArray = nil;
-    self.addButton = nil;
-}
-
 - (BOOL)shouldAutorotate {
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
     return (IS_IPAD) || (orientation != UIInterfaceOrientationPortraitUpsideDown);

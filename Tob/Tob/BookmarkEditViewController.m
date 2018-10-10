@@ -55,13 +55,6 @@
     }
 }
 
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
-    // e.g. self.myOutlet = nil;
-}
-
 - (BOOL)shouldAutorotate {
     UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
     return (IS_IPAD) || (orientation != UIInterfaceOrientationPortraitUpsideDown);
