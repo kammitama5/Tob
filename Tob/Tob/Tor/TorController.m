@@ -768,6 +768,15 @@ connLastAutoIPStack = _connLastAutoIPStack
         
         status_line = [status_line stringByAppendingString:[NSString stringWithFormat:@"\"Stuck: %@\"", warning_str]];
         status_line = [status_line stringByAppendingString:[warnMessage substringFromIndex:summary_loc.location + summary_loc.length + summary_loc2.length + summary_str.length + 1]];
+        
+        // Try to disable and enable network again
+        if (nbrFailedAttempts < MAX_FAILED_ATTEMPTS) {
+            [self disableNetwork];
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                self->nbrFailedAttempts += 1;
+                [self enableNetwork];
+            });
+        }
     }
     
     [tvc renderTorStatus:status_line];
